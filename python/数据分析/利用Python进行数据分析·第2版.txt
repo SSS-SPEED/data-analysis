@@ -1,0 +1,9 @@
+
+一些介绍：
+
+NumPy      Numerical Python                 科学计算的基础包         
+pandas     Python Data Analysis Library     基于NumPy的一种工具，为了解决数据分析任务而创建的
+matplotlib                                  用于绘制图表和其它二维数据可视化的Python库
+SciPy                                       专门解决科学计算中各种标准问题域的包的集合
+
+
