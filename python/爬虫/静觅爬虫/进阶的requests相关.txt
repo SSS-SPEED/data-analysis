@@ -1,0 +1,215 @@
+﻿
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ requests库 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+requests比起urllib来简介了很多，比如使用get方法请求一个网址只需要一行代码
+
+import requests
+ 
+r = requests.get('https://www.baidu.com/')             # 使用get方法请求一个网址  
+                                                       # 也可以换成post()、put()、delete()等实现了POST、PUT、DELETE等请求
+r.encoding = 'utf-8'                                   # 告诉requests编码是utf-8                         
+print(r.status_code)                                   # 200，获得响应吗
+print(r.text)                                          # 网站内容
+print(r.cookies)                                       # 得到Cookies
+print(r.json())                                        # 将返回结果是JSON格式的字符串转化为字典，注意网站的返回格式必须是JSON
+print(r.headers)                                       # 得到响应头
+print(r.url)                                           # 输出url属性得到URL
+print(r.history)                                       # 历史请求
+
+
+使用字典类型来添加get参数
+data = {
+    'name': 'germey',
+    'age': 22
+}
+r = requests.get("http://httpbin.org/get", params=data)     # 添加get参数
+
+使用字典类型来伪造头部，获得知乎问题内容
+import requests
+import re                 # 导入正则的包
+ 
+headers = {               # 伪造头部
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+} 
+r = requests.get("https://www.zhihu.com/explore", headers=headers)                     # 加入伪造的头部
+pattern = re.compile('explore-feed.*?question_link.*?>(.*?)</a>', re.S)                # re.S多行匹配 
+titles = re.findall(pattern, r.text)                                                   # 在字符串中找到正则表达式所匹配的所有子串，并返回一个列表
+print(titles)
+
+
+import requests
+ 
+data = {'name': 'germey', 'age': '22'}                        # 字典
+r = requests.post("http://httpbin.org/post", data=data)       # post的请求
+print(r.text)
+
+
+
+/////////////////////////////// 获得图片，音频，视频资源 ///////////////////////////////
+import requests
+ 
+r = requests.get("https://github.com/favicon.ico")
+print(r.text)                                            # 结果乱码
+print(r.content)                                         # 结果是：b'\x00\x0....b'表示是二进制
+with open('favicon.ico', 'wb') as f:                     # 它的第一个参数是文件名称，第二个参数代表以二进制写的形式打开
+    f.write(r.content)                                   # 直接写入到该python所在文件
+
+
+
+/////////////////////////////// 文件上传 ///////////////////////////////
+
+import requests
+ 
+files = {'file': open('favicon.ico', 'rb')}                  # favicon.ico需要和当前脚本在同一目录下
+r = requests.post("http://httpbin.org/post", files=files)
+print(r.text)
+
+
+
+/////////////////////////////// Cookies ///////////////////////////////
+
+import requests
+ 
+r = requests.get("https://www.baidu.com")
+print(r.cookies)
+for key, value in r.cookies.items():          # 实现Cookie的遍历解析
+    print(key + '=' + value)
+
+
+利用Cookie维持登录状态
+首先打开知乎网页，然后正常登陆网站，可以在F12下的network找到www.zhihu.com，里面有Cookie
+
+import requests
+ 
+headers = {
+    'Cookie': 'XXXXXXXXX’,
+    'Host': 'www.zhihu.com',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
+}
+r = requests.get('https://www.zhihu.com', headers=headers) 
+print(r.text)                                                  # 结果中包含了登录后的结果，证明登录成功
+
+也可以如下：
+
+import requests
+ 
+cookies = 'AAA=1;BBB=2;CCC=3'
+jar = requests.cookies.RequestsCookieJar()
+headers = {
+    'Host': 'www.zhihu.com',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
+}
+for cookie in cookies.split(';'):
+    key, value = cookie.split('=', 1)    # cookie.split()方法分割原始Cookie信息
+    jar.set(key, value)                  # 为requests.cookies.RequestsCookieJar设置Cookie信息
+r = requests.get("http://www.zhihu.com", cookies=jar, headers=headers)     # 设置了Cookie与headers
+print(r.text)
+
+
+
+/////////////////////////////// Session ///////////////////////////////
+
+可以方便地维护一个会话，而且不用担心cookies的问题
+
+import requests
+ 
+s = requests.Session()
+s.get('http://httpbin.org/cookies/set/number/123456789')    # 发起第一个请求，设置cookies为number:123456789
+r = s.get('http://httpbin.org/cookies')                     # 发起第二个请求，期望获得cookies
+print(r.text)                                               # 返回"number": "123456789"，说明前后两个请求不是独立的
+                                                            # 如果把s都换成requests.get，则最后返回是空，是两个独立的会话
+
+
+
+/////////////////////////////// SSL证书验证 ///////////////////////////////
+
+requests提供了证书验证的功能。当发送HTTP请求的时候，它会检查SSL证书，默认自动验证
+
+import requests
+ 
+response = requests.get('https://www.12306.cn')        # 12306的证书没有被官方CA机构信任，会出现证书验证错误的结果。
+print(response.status_code)                            # 于是结果是报错
+
+response = requests.get('https://www.12306.cn', verify=False)     # verify=False就是不去验证SSL证书 
+print(response.status_code)                                       # 返回200，成功
+                                                                  # 但是会有一个警告建议制定证书
+                                                                  # 忽略警告：requests.packages.urllib3.disable_warnings()
+
+
+
+/////////////////////////////// 代理设置 ///////////////////////////////
+
+import requests
+ 
+proxies = {
+  "http": "http://10.10.1.10:3128",               # 需要换成自己的有效代理
+  "https": "http://10.10.1.10:1080",              # 需要换成自己的有效代理
+}  
+ 
+requests.get("https://www.taobao.com", proxies=proxies)
+
+若代理需要使用HTTP Basic Auth，可以使用类似http://user:password@host:port这样的语法来设置代理
+proxies = {
+    "http": "http://user:password@10.10.1.10:3128/",
+}
+
+
+
+/////////////////////////////// 超时时间 ///////////////////////////////
+
+import requests
+ 
+r = requests.get("https://www.taobao.com", timeout = 1)         # 设置超时时间1S，默认永久等待
+print(r.status_code)
+
+
+
+/////////////////////////////// 身份认证 ///////////////////////////////
+
+import requests
+ 
+r = requests.get('http://localhost:5000', auth=('username', 'password'))
+print(r.status_code)            # 成功，会返回200状态码，失败，则返回401状态码。
+                                # requests还提供了其他认证方式，如OAuth认证，不过此时需要安装oauth包
+
+
+
+/////////////////////////////// Prepared Request整体提交 ///////////////////////////////
+
+主要用于构建一个Request队列
+
+from requests import Request, Session
+ 
+url = 'http://httpbin.org/post'      # 3个数据
+data = {
+    'name': 'germey'
+}
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
+}
+req = Request('POST', url, data=data, headers=headers)       # 3个数据整合，用post形式
+s = Session()                                                # 实例化一个Session
+prepped = s.prepare_request(req)                             # 实例化一个prepare_request
+r = s.send(prepped)                                          # Session发送prepare_request
+print(r.text)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

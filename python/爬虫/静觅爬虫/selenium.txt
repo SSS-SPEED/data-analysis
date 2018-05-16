@@ -1,0 +1,363 @@
+﻿
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 前提准备 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+安装selenium
+conda install selenium
+
+为谷歌浏览器安装chromedriver
+注意：chromedriver要与你使用的chrome版本对应
+详见：http://blog.csdn.net/huilan_same/article/details/51896672
+下载地址：http://chromedriver.storage.googleapis.com/index.html
+
+将解压的chromedriver.exe放到你运行.py程序的下面（也就是工作目录下）
+
+
+可以运行如下代码就大功告成：
+from selenium import webdriver
+browser = webdriver.Chrome()
+browser.get('http://www.baidu.com/')
+
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ selenium ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+介绍：selenium是个自动化测试工具，可以模拟点击，拖动等操作，来控制网页达到我们想要的动作
+
+import time
+time.sleep(1)     // 休眠1秒
+
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+ 
+browser = webdriver.Chrome()                      # 完成谷歌浏览器对象的初始化，各类浏览器初始化见底部
+try:
+    browser.get('https://www.baidu.com')          # 请求网页
+    input = browser.find_element_by_id('kw')      # 找ID是kw的节点，寻找节点的各种方式见底部
+    input.send_keys('Python')                     # 节点的交互，这里是输入'Python'到指定的节点，节点的交互见底部
+    input.send_keys(Keys.ENTER)                   # 节点的交互，对指定节点进行进入
+    wait = WebDriverWait(browser, 10)
+    wait.until(EC.presence_of_element_located((By.ID, 'content_left')))
+    print(browser.current_url)                    # 打印链接
+    print(browser.get_cookies())                  # 打印cookies
+    print(browser.page_source)                    # 打印源代码
+finally:  
+    browser.close()                               # 浏览器的关闭
+
+作用：运行后打开谷歌浏览器，自动打开百度，输入关键字“Python”，自己搜索结果，并输出url，cookies及源码，最后关闭浏览器
+
+
+
+
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 各类浏览器初始化 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+browser = webdriver.Chrome()       // 谷歌
+browser = webdriver.Firefox()      // 火狐
+browser = webdriver.Edge()         // 微软的edge浏览器
+browser = webdriver.PhantomJS()    // 无头（无界面）浏览器
+browser = webdriver.Safari()       // Safari
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 寻找节点 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+寻找单个节点：
+find_element(By.XXX, 'YYY')                  // 通用方法，需要2个参数，By.ID，By.NAME，详见help(By)，'YYY'则是参数的值
+find_element_by_id('kw')                     // 找id，等价于find_element(By.ID, 'kw')
+find_element_by_name()                       // 找name
+find_element_by_css_selector('#q')           // 通过CSS选择器获取
+find_element_by_xpath('//*[@id="q"]')        // 根据XPath获取
+注意：如果有多个节点，用find_element()方法查找，就只能得到第一个节点了
+
+多个节点：
+find_element()   变成   find_elements()
+find_elements_by_css_selector('.service-bd li')     // 通过CSS选择器获取多个节点，返回是列表类型
+
+所有方法：
+find_element(By.ID, 'q')                find_elements(By.CSS_SELECTOR, '.service-bd li')
+find_element_by_id                      find_elements_by_id
+find_element_by_name                    find_elements_by_name
+find_element_by_xpath                   find_elements_by_xpath
+find_element_by_link_text               find_elements_by_link_text
+find_element_by_partial_link_text       find_elements_by_partial_link_text
+find_element_by_tag_name                find_elements_by_tag_name
+find_element_by_class_name              find_elements_by_class_name
+find_element_by_css_selector            find_elements_by_css_selector
+
+CSS选择器：
+#是id
+.是class
+.list .item-0.active   表示class为list的 class有item-0也有active的节点
+.list .item-0 .active  表示class为list的下的class是item-0下的class是active
+
+
+ 
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 节点的交互 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+send_keys()   输入文字
+clear()       清空文字click()
+click()       点击按钮
+
+input = browser.find_element_by_id('q')
+input.send_keys('iPhone')                                       # 输入iPhone
+input.clear()                                                   # 清空
+input.send_keys('iPad')                                         # 再次输入iPad
+button = browser.find_element_by_class_name('btn-search')
+button.click()                                                  # 点击
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 动作链 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+没有特定的执行对象，比如鼠标拖曳、键盘按键
+
+以下是一个鼠标拖曳的例子：
+
+from selenium import webdriver
+from selenium.webdriver import ActionChains
+ 
+browser = webdriver.Chrome()
+url = 'http://www.runoob.com/try/try.php?filename=jqueryui-api-droppable'
+browser.get(url)
+browser.switch_to.frame('iframeResult')      # 藏在了子frame，所以需要先跳入ID为iframeResult的子frame
+source = browser.find_element_by_css_selector('#draggable')   # 来源节点
+target = browser.find_element_by_css_selector('#droppable')   # 目标节点
+actions = ActionChains(browser)              # 声明ActionChains对象
+actions.drag_and_drop(source, target)        # 设置拖曳操作的来源与目标
+actions.perform()                            # 执行
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 执行JavaScript ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+直接模拟运行JavaScript，使用execute_script()方法即可实现
+所以说有了这个方法，基本上API没有提供的所有功能都可以用执行JavaScript的方式来实现了。
+
+from selenium import webdriver
+ 
+browser = webdriver.Chrome()
+browser.get('https://www.zhihu.com/explore')         # 利用execute_script()方法将进度条下拉到最底部，然后弹出alert提示框
+browser.execute_script('window.scrollTo(0, document.body.scrollHeight)')
+browser.execute_script('alert("To Bottom")')
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 获取节点的属性 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 
+
+Selenium已经提供了选择节点的方法，返回的是WebElement类型，可以继续操作获得节点的属性
+
+from selenium import webdriver
+from selenium.webdriver import ActionChains
+ 
+browser = webdriver.Chrome()
+url = 'https://www.zhihu.com/explore'
+browser.get(url)
+logo = browser.find_element_by_id('zh-top-link-logo')
+print(logo)                            # 就是一个WebElement
+print(logo.get_attribute('class'))     # 获取节点的class属性，zu-top-link-logo
+
+input = browser.find_element_by_class_name('zu-top-add-question')
+print(input.text)          # 获取节点的获取文本值，提问
+
+input = browser.find_element_by_class_name('zu-top-add-question')
+print(input.id)            # 获取节点id，不是节点的属性id，0.7475246179670016-2
+print(input.location)      # 获取节点在页面中的相对位置，{'x': 761, 'y': 7}
+print(input.tag_name)      # 获取标签名称，button
+print(input.size)          # 获取节点的大小，也就是宽高，{'height': 32, 'width': 66}
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 切换Frame ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 
+
+网页中有一种节点叫作iframe，也就是子Frame，相当于页面的子页面。
+Selenium打开页面后，它默认是在父级Frame里面操作，而此时如果页面中还有子Frame，它是不能获取到子Frame里面的节点的。
+这时就需要使用switch_to.frame()方法来切换Frame
+
+例如源代码里面的：<iframe frameborder="0" id="iframeResult" style="height: 227.12px;"></iframe>
+
+如果报错：Message: no such element: Unable to locate element，那可能是因为有子Frame导致找不到
+
+browser.switch_to.frame('iframeResult')                     # 跳入ID为iframeResult的子Frame
+try:
+    logo = browser.find_element_by_class_name('logo')       # 寻找logo
+except NoSuchElementException:                              # 错误处理
+    print('NO LOGO')
+browser.switch_to.parent_frame()                            # 回到父级frame
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 延时等待 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 
+
+为什么要延时等待：
+get()方法会在网页框架加载结束后结束执行，如果页面有额外的Ajax请求
+那么此时获取的page_source并不是浏览器完全加载完成的页面
+所以，这里需要延时等待一定时间，确保节点已经加载出来
+
+这里等待的方式有两种：一种是隐式等待，一种是显式等待。
+
+隐式等待：
+当使用隐式等待执行测试的时候，如果Selenium没有在DOM中找到节点，将继续等待，超出设定时间后，则抛出找不到节点的异常。
+换句话说，当查找节点而节点并没有立即出现的时候，隐式等待将等待一段时间再查找DOM，默认的时间是0。
+
+from selenium import webdriver
+ 
+browser = webdriver.Chrome()
+browser.implicitly_wait(10)                    # 隐式等待
+browser.get('https://www.zhihu.com/explore')
+input = browser.find_element_by_class_name('zu-top-add-question')
+print(input)
+
+显示等待：
+首先指定要查找的节点，然后设置一个最长等待时间
+如果在规定时间内加载出来了这个节点，就返回查找的节点
+如果到了规定时间依然没有加载出该节点，则抛出超时异常
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+ 
+browser = webdriver.Chrome()
+browser.get('https://www.taobao.com/')
+wait = WebDriverWait(browser, 10)                   # 引入WebDriverWait这个对象，设置最长等待时间
+input = wait.until(EC.presence_of_element_located((By.ID, 'q')))                    # 当这个q节点在世间内成功加载了，就返回该节点
+button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.btn-search')))   # 当这个按钮可以被点击了，则返回该节点
+print(input, button)                                # 不然就是抛出TimeoutException异常
+
+就是设置各种等待条件，符合条件了，则赋值这个节点。（等待条件见底部）
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 前进和后退 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 
+
+就是浏览器的前进和后退功能
+
+browser = webdriver.Chrome()
+browser.get('https://www.baidu.com/')
+browser.get('https://www.taobao.com/')
+browser.get('https://www.python.org/')
+browser.back()           # 后退
+time.sleep(1)            # 休眠
+browser.forward()        # 前进
+browser.close()
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ Cookies ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 
+
+from selenium import webdriver
+ 
+browser = webdriver.Chrome()
+browser.get('https://www.zhihu.com/explore')
+print(browser.get_cookies())                     # 打印Cookies
+browser.add_cookie({'name': 'name', 'domain': 'www.zhihu.com', 'value': 'germey'})    # 增加Cookies
+browser.delete_all_cookies()                     # 删除所有的Cookies
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 选项卡 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 
+
+import time
+from selenium import webdriver
+ 
+browser = webdriver.Chrome()
+browser.get('https://www.baidu.com')                 # 开启百度网页
+browser.execute_script('window.open()')              # 通过JavaScript语句新开启一个选项卡
+print(browser.window_handles)                        # 获取当前开启的所有选项卡
+browser.switch_to_window(browser.window_handles[1])  # 切换选项卡。这里是第二个
+browser.get('https://www.taobao.com')                # 开启淘宝，此时的browser代表第二个选项卡
+time.sleep(1)
+browser.switch_to_window(browser.window_handles[0])  # 重新换回第一个选项卡
+browser.get('https://python.org')                    # 开启python网页
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 异常处理 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+ 
+browser = webdriver.Chrome()
+try:
+    browser.get('https://www.baidu.com')
+except TimeoutException:                     # 超时的异常
+    print('Time Out')
+try:
+    browser.find_element_by_id('hello')
+except NoSuchElementException:               # 节点捕获失败的异常
+    print('No Element')
+finally:
+    browser.close()
+
+
+
+指令：                                     等待条件：
+title_is                                   标题是某内容
+title_contains                             标题包含某内容
+presence_of_element_located                节点加载出来，传入定位元组，如(By.ID, 'p')
+visibility_of_element_located              节点可见，传入定位元组
+visibility_of                              可见，传入节点对象
+presence_of_all_elements_located           所有节点加载出来
+text_to_be_present_in_element              某个节点文本包含某文字
+text_to_be_present_in_element_value        某个节点值包含某文字
+frame_to_be_available_and_switch_to_it     加载并切换
+invisibility_of_element_located            节点不可见
+element_to_be_clickable                    节点可点击
+staleness_of                               判断一个节点是否仍在DOM，可判断页面是否已经刷新
+element_to_be_selected                     节点可选择，传节点对象
+element_located_to_be_selected             节点可选择，传入定位元组
+element_selection_state_to_be              传入节点对象以及状态，相等返回True，否则返回False
+element_located_selection_state_to_be      传入定位元组以及状态，相等返回True，否则返回False
+alert_is_present                           是否出现警告
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

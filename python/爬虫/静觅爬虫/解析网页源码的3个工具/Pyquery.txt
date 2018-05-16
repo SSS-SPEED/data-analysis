@@ -1,0 +1,209 @@
+﻿#是id
+.是class
+.list .item-0.active   表示class为list的 class有item-0也有active的节点
+.list .item-0 .active  表示class为list的下的class是item-0下的class是active
+
+
+
+doc('#container .list li')    # 打印id为container下的class为list的下的所有li节点
+items = doc('.list')  
+lis = items.find('li')        # 找class是list的所有子孙li节点
+lis = items.children('li')    # 找class是list的直接li子节点
+container = items.parent()    # 找class是list的直接父节点
+parents = items.parents()     # 找class是list的所有祖先节点
+li.siblings()                 # 找与li在同一级的兄弟节点
+
+lis = doc('li').items()       # 遍历需要用到items()方法
+for li in lis:
+    print(li)
+
+print(a.attr('href'))         # 获得a所代表节点的href属性值
+print(a.text())               # 获得a所代表节点的字段值
+                              # 如果是多个节点，则返回str类型，每个内容以空格格开
+print(li.html())              # 获得li所代表节点的内部的html代码
+                              # 如果是多个节点，则返回第一个
+
+
+////////////////////////////////// 加载PyQuery的方式 //////////////////////////////////
+
+from pyquery import PyQuery as pq
+
+doc = pq(html)          # html可以是String源代码
+print(doc('li'))        # 打印出每个li节点
+
+doc = pq(url='http://cuiqingcai.com')     # 也可以直接是url网址
+print(doc('title'))                       # 直接打印出网页的title字段的值
+
+doc = pq(filename='demo.html')            # 导入本地文件
+print(doc('li'))                          # 打印li节点
+
+
+////////////////////////////////// 选取子节点的方式 //////////////////////////////////
+
+html = '''
+<div id="container">
+    <ul class="list">
+         <li class="item-0">first item</li>
+         <li class="item-1"><a href="link2.html">second item</a></li>
+         <li class="item-0 active"><a href="link3.html"><span class="bold">third item</span></a></li>
+         <li class="item-1 active"><a href="link4.html">fourth item</a></li>
+         <li class="item-0"><a href="link5.html">fifth item</a></li>
+     </ul>
+ </div>
+'''
+from pyquery import PyQuery as pq
+doc = pq(html)
+print(doc('#container .list li'))          # 先选取id为container的节点，然后再选取其内部的class为list的节点内部的所有li节点。
+                                           # 一级一级的，显示id为container，然后是class为list，最后是符合条件的li节点
+print(type(doc('#container .list li')))    # <class 'pyquery.pyquery.PyQuery'>，是PyQuery类型
+
+items = doc('.list')                       # 先选取class为list的节点
+lis = items.find('li')                     # find()方法，是选取其内部的li节点，是子子孙孙哦
+print(lis)                                 # 打印出来的结果还是PyQuery类型
+ 
+lis = items.children('li')                 # 是选取其内部的li节点，仅子节点哦
+
+
+
+////////////////////////////////// 选取祖先节点的方式 //////////////////////////////////
+
+html = '''
+<div class="wrap">
+    <div id="container">
+        <ul class="list">
+             <li class="item-0">first item</li>
+             <li class="item-1"><a href="link2.html">second item</a></li>
+             <li class="item-0 active"><a href="link3.html"><span class="bold">third item</span></a></li>
+             <li class="item-1 active"><a href="link4.html">fourth item</a></li>
+             <li class="item-0"><a href="link5.html">fifth item</a></li>
+         </ul>
+     </div>
+ </div>
+'''
+from pyquery import PyQuery as pq
+doc = pq(html)
+items = doc('.list')
+container = items.parent()            # 选取了class是list的直接父节点
+print(container)                      # 这里输出就是<div id="container">的那段
+ 
+parents = items.parents()             # 选取了class是list的所有祖先节点
+print(parents)                        # 这里输出了<div class="wrap">和<div id="container">
+
+
+////////////////////////////////// 遍历 //////////////////////////////////
+
+li = doc('.item-0.active')
+print(li)                      # PyQuery类型
+print(str(li))                 # str类型
+
+lis = doc('li').items()        # 遍历需要用到items()方法
+print(type(lis))
+for li in lis:
+    print(li)                  # 每个li节点还可以调用前面所说的方法进行选择，比如继续查询子节点，寻找某个祖先节点等
+
+
+
+////////////////////////////////// 获取信息 //////////////////////////////////
+
+html = '''
+<div class="wrap">
+    <div id="container">
+        <ul class="list">
+             <li class="item-0">first item</li>
+             <li class="item-1"><a href="link2.html">second item</a></li>
+             <li class="item-0 active"><a href="link3.html"><span class="bold">third item</span></a></li>
+             <li class="item-1 active"><a href="link4.html">fourth item</a></li>
+             <li class="item-0"><a href="link5.html">fifth item</a></li>
+         </ul>
+     </div>
+ </div>
+'''
+from pyquery import PyQuery as pq
+doc = pq(html)
+a = doc('.item-0.active a')          # 找class是item-0也是active的节点的a节点
+print(a.attr('href'))                # 找这个a所代表的节点的href属性的值
+
+
+a = doc('a')                         # 选取了所有的a节点
+print(a, type(a))                    # 打印出了所有的a节点
+print(a.attr('href'))                # 只会取第一个a节点的属性值
+print(a.attr.href)                   # 上面这个方法的另一种写法
+
+
+a = doc('a')
+for item in a.items():
+    print(item.attr('href'))         # 通过遍历获得每个a节点下的href属性字段
+
+
+doc = pq(html)
+a = doc('.item-0.active a')          # 选取了class="item-0 active">的节点下的a节点
+print(a.text())                      # 打印出了这个a节点的字段值
+                                     # 注意：此时它会忽略掉节点内部包含的所有HTML，只返回纯文字内容。
+                                     # 如果是多个节点，则返回str类型，每个内容以空格格开
+ 
+li = doc('.item-0.active')           # 选取了class="item-0 active">的li节点
+print(li.html())                     # 输出是这个li节点下的所有html内容
+                                     # 如果是多个节点，则返回第一个
+
+
+
+////////////////////////////////// 节点的操作 //////////////////////////////////
+
+addClass和removeClass：动态改变节点的class属性
+
+li.removeClass('active')    # 去除这个li节点active的class，输出就看不到active的class
+li.addClass('active')       # 添加一个active的class给li，输出又有了
+
+li.attr('name', 'link')                # 增加一个name的属性，值是link
+li.text('changed item')                # 字段值替换成changed item，里面有a标签什么的也都不见了
+li.html('<span>changed item</span>')   # li的内部变成这个，之前的什么都没了
+
+wrap.find('p').remove()                # 移除P标签，包括里面的内容
+
+append()、empty()和prepend()
+
+
+
+////////////////////////////////// 节点的选择器 //////////////////////////////////
+
+html = '''
+<div class="wrap">
+    <div id="container">
+        <ul class="list">
+             <li class="item-0">first item</li>
+             <li class="item-1"><a href="link2.html">second item</a></li>
+             <li class="item-0 active"><a href="link3.html"><span class="bold">third item</span></a></li>
+             <li class="item-1 active"><a href="link4.html">fourth item</a></li>
+             <li class="item-0"><a href="link5.html">fifth item</a></li>
+         </ul>
+     </div>
+ </div>
+'''
+from pyquery import PyQuery as pq
+doc = pq(html) 
+li = doc('li:first-child')        # 选取了第一个节点
+print(li)
+li = doc('li:last-child')         # 选取了最后一个节点
+print(li)
+li = doc('li:nth-child(2)')       # 选取了第二个节点（从1开始）
+print(li)
+li = doc('li:gt(3)')              # 选取了第4个节点（不含）之后的节点（从0开始）
+print(li)
+li = doc('li:nth-child(2n)')      # 选取了偶数位节点（从1开始）
+print(li)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

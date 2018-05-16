@@ -1,0 +1,80 @@
+﻿
+
+CSV，全称为Comma-Separated Values，
+中文可以叫作逗号分隔值或字符分隔值，其文件以纯文本形式存储表格数据。
+
+形式如下：
+id,name,age
+10001,Mike,20
+10002,Bob,22
+10003,Jordan,21
+
+
+列表方式的导入数据：
+
+import csv
+ 
+with open('data.csv', 'w') as csvfile:         # 创建data.csv文件，写入模式
+    writer = csv.writer(csvfile)               # 调用csv库的writer()方法初始化写入对象
+    writer.writerow(['id', 'name', 'age'])     # 调用writerow()方法传入每行的数据即可完成写入
+    writer.writerow(['10001', 'Mike', 20])     # 每行的各个数据之间都是用，分割的
+    writer.writerow(['10002', 'Bob', 22])
+    writer.writerow(['10003', 'Jordan', 21])   # 结果如上面的展示
+ 
+    writer = csv.writer(csvfile, delimiter=' ')      # delimiter这里表示每行各个数据之间用空格隔开
+    # 一次写入多行，这里用的是二维列表
+    writer.writerows([['10001', 'Mike', 20], ['10002', 'Bob', 22], ['10003', 'Jordan', 21]])
+
+
+字典方式的导入数据：
+
+import csv
+ 
+with open('data.csv', 'w') as csvfile:                             # w改成a就是追加模式了
+    fieldnames = ['id', 'name', 'age']                             # 先定义3个字段
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)        # 初始化一个字典写入对象
+    writer.writeheader()                                           # 先调用writeheader()方法先写入头信息
+    writer.writerow({'id': '10001', 'name': 'Mike', 'age': 20})    # 调用writerow()方法传入相应字典
+    writer.writerow({'id': '10002', 'name': 'Bob', 'age': 22}) 
+    writer.writerow({'id': '10003', 'name': 'Jordan', 'age': 21})   
+
+with open('data.csv', 'a', encoding='utf-8') as csvfile:           # 搞定了中文编码问题
+
+
+
+读取数据：
+
+import csv
+ 
+with open('data.csv', 'r', encoding='utf-8') as csvfile:       
+    reader = csv.reader(csvfile)
+    for row in reader:
+        print(row)
+
+接触过pandas的话，可以利用read_csv()方法将数据从CSV中读取出来
+import pandas  as pd
+ 
+df = pd.read_csv('data.csv')
+print(df)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

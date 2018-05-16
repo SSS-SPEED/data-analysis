@@ -1,0 +1,158 @@
+﻿
+
+
+目标：
+利用Selenium抓取淘宝商品并用pyquery解析得到商品的图片、名称、价格、购买人数、店铺名称和店铺所在地信息
+
+
+
+1.分析请求：
+
+
+发现淘宝通过Ajax来请求
+https://s.taobao.com/api?_ksTS=1521683585974_758&callback=jsonp759&ajax=true&m=customized&stats_click=search_radio_all:1&q=%E5%B0%8F%E7%B1%B3&s=36&imgfile=&initiative_id=staobaoz_20180322&bcoffset=0&js=1&ie=utf8&rn=76c993e4e55d309f823b87d57389c6d7
+没有规律，所以通过Selenium抓取
+
+
+原始链接：
+https://s.taobao.com/search?&initiative_id=tbindexz_20170306&ie=utf8&spm=a21bo.2017.201856-taobao-item.2&sourceId=tb.index&search_type=item&ssid=s5-e&commend=all&imgfile=&q=%E5%B0%8F%E7%B1%B3&suggest=history_1&_input_charset=utf-8&wq=&suggest_query=&source=suggest
+简化：
+https://s.taobao.com/search?q=小米
+
+关于“下一页”，有3个选择：
+1-点击下标数字1,2,3
+2-点击按钮“下一页”              
+3-输入数字，直接跳转第X页         ----选择这个，直接跳转比较方便
+
+
+
+
+
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from urllib.parse import quote
+from pyquery import PyQuery as pq
+
+# 无界面化
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+browser = webdriver.Chrome(chrome_options=chrome_options)
+ 
+browser = webdriver.Chrome()         # 谷歌浏览器的初始化
+wait = WebDriverWait(browser, 10)    # 设置等待时间10秒
+KEYWORD = 'iPad'                     # 搜索的关键词
+
+ 
+def index_page(page):    # 抓取索引页，page-页数
+    print('正在爬取第', page, '页')
+    try:
+        url = 'https://s.taobao.com/search?q=' + quote(KEYWORD)    # 拼接完整的URL
+                                                                   # quote()是屏蔽特殊字符，因为url不允许出现空格，特殊字也要进行转换
+        browser.get(url)                                           # 请求目标URL
+        if page > 1:            # 第一页不需要格外设置，第X页需要找到节点进行操作跳转 
+            # 寻找页数输入框，在id为mainsrp-pager下的，class是form的div下的，直接子元素的，input节点
+            # 等待直到这个节点被加载
+            input = wait.until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '#mainsrp-pager div.form > input')))
+            # 寻找页数提交按钮，在id为mainsrp-pager下的，class是form的div下的，直接子元素的，class是btn.J_Submit的span节点
+            # 等待直到这个按钮可以被点击
+            submit = wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '#mainsrp-pager div.form > span.btn.J_Submit')))
+            input.clear()             # 输入框清空
+            input.send_keys(page)     # 输入应有的页码
+            submit.click()            # 提交
+        
+        # 等待，直到这个节点包含某个文字（仔细观察，发现如果选了第3页，那么“第3页”不可点击，其他的可以，通过这个可以确定页数）
+        # 在id为mainsrp-pager下的，class是item，active的li，直接子元素的，span元素，等于page参数，代表页数正确
+        wait.until(
+            EC.text_to_be_present_in_element((By.CSS_SELECTOR, '#mainsrp-pager li.item.active > span'), str(page)))
+        # 等待，直到这个节点被加载，第一个商品必须被加载
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-itemlist .items .item')))
+        get_products()
+    except TimeoutException:
+        index_page(page)
+        
+def get_products():   # 提取商品数据
+    html = browser.page_source       # 获得此时的网页源码
+    doc = pq(html)                   # 使用PyQuery加载网页源码
+    items = doc('#mainsrp-itemlist .items .item').items()  # 找所有符合条件的节点，.items()是将他们遍历
+    for item in items:
+        product = {
+            'image': item.find('.pic .img').attr('data-src'),   # find是找子孙节点，图片有2个，这里选data-src，因为是完整大图
+            'price': item.find('.price').text(),                # 价格，看源码是一行一行输出的
+            'deal': item.find('.deal-cnt').text(),              # 付款人数
+            'title': item.find('.title').text(),                # 标题
+            'shop': item.find('.shop').text(),                  # 专卖店
+            'location': item.find('.location').text()           # 位置
+        }
+        print(product)
+#         save_to_mongo(product)
+
+MAX_PAGE = 100
+def main():   # 遍历每一页
+    for i in range(1, MAX_PAGE + 1):
+        print('第', i, '页')
+        index_page(i)
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

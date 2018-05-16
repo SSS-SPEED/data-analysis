@@ -1,0 +1,84 @@
+﻿
+
+
+
+保存知乎上“发现”页面的“热门话题”部分，将其问题和答案统一保存成文本形式。
+
+原网址：https://www.zhihu.com/explore（非登录情况下）
+
+
+import requests
+from pyquery import PyQuery as pq
+ 
+url = 'https://www.zhihu.com/explore'                  # 源网址
+headers = {                                            # 需要伪造头部
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+}
+html = requests.get(url, headers=headers).text         # 获得网址源码 
+doc = pq(html)                                         # PyQuery化
+items = doc('.explore-tab .feed-item').items()         # 抓取到符合条件的div         
+for item in items:
+    question = item.find('h2').text()                    # 抓问题
+    author = item.find('.author-link-line').text()       # 抓作者
+    answer = pq(item.find('.content').html()).text()     # 抓回答
+
+    file = open('explore.txt', 'a', encoding='utf-8')    # 如果该txt没有，则是创建，a追加模式，不会覆盖，utf-8编码
+    file.write('\n'.join([question, author, answer]))    # join()是字符串的连接
+    file.write('\n' + '=' * 50 + '\n')                   # 用50个=隔开
+    file.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

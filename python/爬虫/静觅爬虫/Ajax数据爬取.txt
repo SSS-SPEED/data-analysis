@@ -1,0 +1,257 @@
+﻿
+有时候我们在用requests抓取页面的时候，得到的结果可能和在浏览器中看到的不一样：
+在浏览器中可以看到正常显示的页面数据，但是使用requests得到的结果并没有。
+这是因为requests获取的都是原始的HTML文档，而浏览器中的页面则是经过JavaScript处理数据后生成的结果，
+
+这些数据的来源有多种，可能是通过Ajax加载的
+                      可能是包含在HTML文档中的
+                      可能是经过JavaScript和特定算法计算后生成的。
+
+
+对于第一种情况，数据加载是一种异步加载方式，原始的页面最初不会包含某些数据，
+原始页面加载完后，会再向服务器请求某个接口获取数据，然后数据才被处理从而呈现到网页上，
+这其实就是发送了一个Ajax请求。
+
+
+所以如果遇到这样的页面，直接利用requests等库来抓取原始页面，是无法获取到有效数据的，
+这时需要分析网页后台向接口发送的Ajax请求，
+如果可以用requests来模拟Ajax请求，那么就可以成功抓取了
+
+
+Ajax，全称为Asynchronous JavaScript and XML，即异步的JavaScript和XML。
+它不是一门编程语言，而是利用JavaScript在保证页面不被刷新、页面链接不改变的情况下与服务器交换数据并更新部分网页的技术。
+
+对于传统的网页，如果想更新其内容，那么必须要刷新整个页面，但有了Ajax，便可以在页面不被全部刷新的情况下更新其内容。
+在这个过程中，页面实际上是在后台与服务器进行了数据交互，获取到数据之后，再利用JavaScript改变网页，这样网页内容就会更新了。
+
+
+很多网页都有下滑查看更多的选项，比如微博个人主页的下拉
+
+
+
+
+Ajax请求到网页更新的这个过程可以简单分为以下3步：（都由JavaScript完成）
+(1) 发送请求：向服务器发送请求，当服务器返回响应时，监听收到
+(2) 解析内容：将服务器相应进行解析和转化
+(3) 渲染网页：调用JavaScript来针对解析完的内容对网页进行下一步处理，改变网页内容
+
+
+////////////////////////////// 查看请求 //////////////////////////////
+
+以https://m.weibo.cn/u/2830678474微博为例
+
+审查元素--Network选项卡
+
+Ajax有特殊的请求类型，它叫作xhr，示例中我们可以发现一个名称以getIndex开头的请求，其Type为xhr
+观察其URL，Request Headers，Response Headers
+其中Request Headers中有一个信息为X-Requested-With:XMLHttpRequest，这就标记了此请求是Ajax请求
+点击Preview选项卡，即可看到响应的内容，它是JSON格式的。
+点击Response选项卡，里面是真实的返回数据
+
+在请求的上方有一层筛选栏，直接点击XHR，此时在下方显示的所有请求便都是Ajax请求了
+筛选后不断下拉网页，就是一页一页的数据了
+
+
+////////////////////////////// 开始抓取 //////////////////////////////
+
+1.分析请求：
+选定多个Ajax请求，发现是GET类型的请求，有4个参数type、value、containerid和page
+其中type、value、containerid固定，page每次+1
+
+https://m.weibo.cn/api/container/getIndex?type=uid&value=2830678474&containerid=1076032830678474&page=3
+
+
+2.分析响应：
+查看Response，解析返回的XML，发现：
+cardlistInfo     ---total：总条数，可以用于计算分页数
+cards            ---总共10条，每条是各自的信息
+                    "reposts_count": 5,      转发数目
+                    "comments_count": 0,     评论数目
+                    "attitudes_count": 0,    赞数目
+
+3.开始爬取
+
+from urllib.parse import urlencode
+import requests
+from pyquery import PyQuery as pq
+
+base_url = 'https://m.weibo.cn/api/container/getIndex?'
+ 
+headers = {           # 伪造头部数据来源是Request Headers
+    'Host': 'm.weibo.cn',
+    'Referer': 'https://m.weibo.cn/u/2830678474',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+    'X-Requested-With': 'XMLHttpRequest',
+}
+
+# 拼接URL，获得响应
+def get_page(page):
+    params = {
+        'type': 'uid',                       # 固定值
+        'value': '2830678474',
+        'containerid': '1076032830678474',
+        'page': page                         # 可变参数
+    }
+    url = base_url + urlencode(params)       # 拼接URL
+    try:
+        response = requests.get(url, headers=headers)    # 请求拼接URL，伪造的头部
+        if response.status_code == 200:
+            return response.json()                      # 返回json对象
+    except requests.ConnectionError as e:
+        print('Error', e.args)
+      
+# 分析响应，组成结果对象  
+def parse_page(json):
+    if json:
+        items = json.get('data').get('cards')         # 抓取data下的cards列表
+        for item in items:
+            item = item.get('mblog')                  # 信息都在mblog字段下
+            weibo = {}
+            weibo['id'] = item.get('id')
+            weibo['text'] = pq(item.get('text')).text()        # 借助pyquery将正文中的HTML标签去掉   
+            weibo['attitudes'] = item.get('attitudes_count')
+            weibo['comments'] = item.get('comments_count')
+            weibo['reposts'] = item.get('reposts_count')
+            yield weibo        
+
+# 入口，遍历1-11条，输出每个结果
+if __name__ == '__main__':
+    for page in range(1, 11):          # 抓取第1-11页
+        json = get_page(page)
+        results = parse_page(json)
+        for result in results:
+            print(result)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

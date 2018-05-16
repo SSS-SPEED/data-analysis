@@ -1,0 +1,84 @@
+﻿
+
+loads()方法将JSON文本字符串转为JSON对象
+dumps()方法将JSON对象转为文本字符串。
+
+读取JSON：
+
+import json
+ 
+str = '''
+[{
+    "name": "Bob",                 # JSON的数据需要用双引号来包围，不能使用单引号。
+    "gender": "male",
+    "birthday": "1992-10-18"
+}, {
+    "name": "Selina",
+    "gender": "female",
+    "birthday": "1995-10-18"
+}]
+'''
+data = json.loads(str)             # 将json字符串转化成json对象
+print(data)                        # 输出了json对象
+print(type(data))                  # <class 'list'>
+print(data[0].get('name'))         # 输出列表的第一项里面name对应的值
+print(data[0].get('name2','12'))   # 找不到的情况下会输出None，但是第二个参数是默认值
+
+import json
+with open('data.json', 'r') as file:    # 打开data.json这个文件，只读模式
+    str = file.read()                     
+    data = json.loads(str)              # 将其内容转化成json字符串，并打印
+    print(data)
+
+
+
+
+输出JSON：
+
+import json
+ 
+data = [{                              # 将json对象
+    'name': 'Bob',
+    'gender': 'male',
+    'birthday': '1992-10-18'
+}]
+with open('data.json', 'w') as file:          # 创建data.json文件，写入模式
+    file.write(json.dumps(data))              # 将json对象转化成str字符串，并写入
+    file.write(json.dumps(data, indent=2))    # 缩进字符个数，格式会更加清晰
+
+中文的写法
+with open('data.json', 'w', encoding='utf-8') as file:           # 规定了编码utf-8
+    file.write(json.dumps(data, indent=2, ensure_ascii=False))   # ensure_ascii也是必须的 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

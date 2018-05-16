@@ -1,0 +1,110 @@
+﻿
+
+XPath，全称XML Path Language，即XML路径语言，它是一门在XML文档中查找信息的语言。
+它最初是用来搜寻XML文档的，但是它同样适用于HTML文档的搜索。
+所以在做爬虫时，我们完全可以使用XPath来做相应的信息抽取。
+
+import lxml
+
+常用规则：
+nodename       选取此节点的所有子节点
+/              从当前节点选取直接子节点，直属子节点
+//             从当前节点选取子孙节点
+.              选取当前节点
+..             选取当前节点的父节点
+@              选取属性
+text()         获得值
+
+XPath提供了很多节点轴选择方法，包括获取子元素、兄弟元素、父元素、祖先元素等
+
+
+例如：//title[@lang='eng']  代表选择所有名称为title，同时属性lang的值为eng的节点
+
+
+lxml.etree.HTML(.......)       # 实例化，用于解析html
+lxml.etree.tostring(html)      # 输出HTML的结果，会自动补全残缺标签，结果是bytes，记得编码.decode('utf-8')
+lxml.etree.parse('./111.html', etree.HTMLParser())      # 实例化，读取html文件
+
+import lxml
+text = '''              # 这段代码少一个</li>，但使用了lxml会自动补全，并且<html><body>也会有
+<div>
+    <ul>
+         <li class="item-0"><a href="link1.html">first item</a></li>
+         <li class="item-1"><a href="link2.html">second item</a></li>
+         <li class="item-inactive"><a href="link3.html">third item</a></li>
+         <li class="item-1"><a href="link4.html">fourth item</a></li>
+         <li class="item-0"><a href="link5.html">fifth item</a>            
+     </ul>
+ </div>
+'''
+html = lxml.etree.HTML(text)              # lxml.etree.HTML()用于解析一段html代码 
+result = lxml.etree.tostring(html)        # lxml.etree.tostring(）用于将解析的代码输出
+print(result.decode('utf-8'))             # 编码转换后输出
+
+
+from lxml import etree
+ 
+html = etree.parse('./111.html', etree.HTMLParser())    # 读取同一级的html文件
+print(etree.tostring(html).decode('utf-8'))             # 编码转换后输出
+
+result = html.xpath('//*')                              # *代表匹配所有节点
+print(result)                                           # 输出是list形式，元素类似<Element html at 0x10510d9c8>
+
+result = html.xpath('//li')                             # 获取所有li节点
+result = html.xpath('//li/a')                           # 获取所有li节点下的所有直接a子节点，直属子节点
+result = html.xpath('//ul//a')                          # 结果与上一行一致，子孙节点
+result = html.xpath('//ul/a')                           # 返回是None，因为ul下没有直属节点a
+result = html.xpath('//a[@href="link4.html"]/../@class')           # 返回属性href为"link4.html"的a节点的父节点的class属性值，直属父节点
+result = html.xpath('//a[@href="link4.html"]/parent::*/@class')    # 与上一行效果一样，parent::获取父节点
+result = html.xpath('//li[@class="item-1"]')            # 找属性class为item-1的符合条件的li节点
+result = html.xpath('//li[@class="item-0"]/a/text()')   # 找属性class为item-1的符合条件的li节点的a节点下的值
+result = html.xpath('//li/a/@href')                     # 获得所有li下a的href属性值
+result = html.xpath('//li[1]/a/text()')                 # 获得第一个li节点，这里是以1开头，不是0
+result = html.xpath('//li[last()]/a/text()')            # 获得最后一个li节点
+result = html.xpath('//li[position()<3]/a/text()')      # 获得位置小于3的li节点，也就是1和2
+result = html.xpath('//li[last()-2]/a/text()')          # 获得倒数第三个li节点，因为last()是最后一个
+
+
+多属性获取：
+from lxml import etree
+
+text = '''<li class="li li-first"><a href="link.html">first item</a></li>'''
+
+html = etree.HTML(text)
+result = html.xpath('//li[@class="li"]/a/text()')              # 错误，实际li的class是li li-first，所以用li是找不到的
+result = html.xpath('//li[contains(@class, "li")]/a/text()')   # 正确，只要包含了li就能被匹配到
+                                                               # contains()方法，第一个参数传入属性名称，第二个参数传入属性值
+
+
+这个li既有class属性，也有name属性
+text = '''<li class="li li-first" name="item"><a href="link.html">first item</a></li>'''
+html = etree.HTML(text)
+result = html.xpath('//li[contains(@class, "li") and @name="item"]/a/text()')   # 使用and符号
+
+
+or       或                 age=19 or age=20            如果age是19，则返回true。如果age是21，则返回false
+and      与                 age>19 and age<21           如果age是20，则返回true。如果age是18，则返回false
+mod      计算除法的余数     5 mod 2                     1
+|        计算两个节点集     //book | //cd               返回所有拥有book和cd元素的节点集
++        加法               6 + 4                       10
+-        减法               6 - 4                       2
+*        乘法               6 * 4                       24
+div      除法               8 div 4                     2
+=        等于               age=19                      如果age是19，则返回true。如果age是20，则返回false
+!=       不等于             age!=19                     如果age是18，则返回true。如果age是19，则返回false
+<        小于               age<19                      如果age是18，则返回true。如果age是19，则返回false
+<=       小于或等于         age<=19                     如果age是19，则返回true。如果age是20，则返回false
+>        大于               age>19                      如果age是20，则返回true。如果age是19，则返回false
+>=       大于或等于         age>=19                     如果age是19，则返回true。如果age是18，则返回false
+
+
+
+
+
+
+
+
+
+
+
+

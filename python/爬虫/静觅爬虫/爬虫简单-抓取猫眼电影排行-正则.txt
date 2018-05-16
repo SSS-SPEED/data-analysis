@@ -1,0 +1,200 @@
+﻿
+目标：提取猫眼电影TOP100的电影排名、名称、时间、评分、图片等信息
+      站点URL为http://maoyan.com/board/4
+      提取的结果会以文件形式保存下来
+
+
+目标URL：电影名称、时间、评分、图片页面上都有显示
+         http://maoyan.com/board/4               提供了排行前十的电影
+         http://maoyan.com/board/4?offset=10     提供了排行10-20的电影
+         判断offset参数就是页数
+         offset=0至offset=90，提供了TOP100
+
+
+☆☆☆ 从获取一个页面开始：
+import requests
+ 
+def get_one_page(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    return None
+ 
+def main():
+    url = 'http://maoyan.com/board/4'
+    html = get_one_page(url)
+    print(html)                                # 发现访问被禁止，怀疑是头部的问题
+ 
+main()
+
+尝试伪造头部
+headers = {               # 伪造头部
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+} 
+response = requests.get(url, headers = headers)
+
+成功获得目标源代码
+
+
+☆☆☆ 从目标页面通过正则获得信息：
+
+通过浏览器目标页面的F12，查看源代码，找寻信息位置，解析规律
+注意：不要在Elements选项卡中直接查看源码，因为那里的源码可能经过JavaScript操作而与原始请求不同
+      要通过Network，在左边找到正确地址，再在右侧的Preview里看
+
+第一部电影是“霸王别姬”，通过搜索“霸王别姬”，发现规律是都在一个<dd>里面
+
+排名：排名信息是在class为board-index的i节点内
+      <i class="board-index board-index-1">1</i>
+      <dd>.*?board-index.*?>(.*?)</i>
+
+图片：第二个img节点的data-src属性是图片的链接
+      <img data-src="http://p1.meituan.net/movie/20803f59291c47e1e116c11963ce019e68711.jpg@160w_220h_1e_1c" alt="霸王别姬"
+      是在排名的基础上继续写：
+      <dd>.*?board-index.*?>(.*?)</i>加上.*?data-src="(.*?)"
+      等于<dd>.*?board-index.*?>(.*?)</i>.*?data-src="(.*?)"
+
+名字：<p class="name">是标志，注意不要挑title="肖申克的救赎"这类，这只是属性
+      <dd>.*?board-index.*?>(.*?)</i>.*?data-src="(.*?)".*?name.*?a.*?>(.*?)</a>
+
+再提取主演、发布时间、评分等内容时，都是同样的原理。最后，正则表达式写为：
+<dd>.*?board-index.*?>(.*?)</i>.*?data-src="(.*?)".*?name.*?a.*?>(.*?)</a>.*?star.*?>(.*?)</p>.*?releasetime.*?>(.*?)</p>.*?integer.*?>(.*?)</i>.*?fraction.*?>(.*?)</i>.*?</dd>
+
+最后增加方法：
+def parse_one_page(html):
+    pattern = re.compile(
+        '<dd>.*?board-index.*?>(.*?)</i>.*?data-src="(.*?)".*?name.*?a.*?>(.*?)</a>.*?star.*?>(.*?)</p>.*?releasetime.*?>(.*?)</p>.*?integer.*?>(.*?)</i>.*?fraction.*?>(.*?)</i>.*?</dd>',
+        re.S)
+    items = re.findall(pattern, html)
+    print(items)
+
+发现输出较乱，于是
+def parse_one_page(html):
+    pattern = re.compile(
+        '<dd>.*?board-index.*?>(.*?)</i>.*?data-src="(.*?)".*?name.*?a.*?>(.*?)</a>.*?star.*?>(.*?)</p>.*?releasetime.*?>(.*?)</p>.*?integer.*?>(.*?)</i>.*?fraction.*?>(.*?)</i>.*?</dd>',
+        re.S)
+    items = re.findall(pattern, html)
+    for item in items:
+        print(item[0]) 
+        print(item[1])
+        print(item[2].strip())               # .strip()是去除首尾的空格
+        print(item[3].strip())
+        print(item[4].strip())
+        print(item[5].strip() + item[6].strip())
+
+
+
+☆☆☆ 写入文件：
+
+这里通过JSON库的dumps()方法实现字典的序列化，
+并指定ensure_ascii参数为False，这样可以保证输出结果是中文形式而不是Unicode编码。
+
+def write_to_json(content):
+    with open('result.txt', 'a') as f:
+        print(type(json.dumps(content)))
+        f.write(json.dumps(content, ensure_ascii=False,).encode('utf-8'))
+
+def main():
+    url = 'http://maoyan.com/board/4'
+    html = get_one_page(url)
+    for item in parse_one_page(html):
+        write_to_json(item)
+
+
+
+☆☆☆ 分页爬取：
+
+if __name__ == '__main__':
+    for i in range(10):
+        main(offset=i * 10)
+
+def main(offset):
+    url = 'http://maoyan.com/board/4?offset=' + str(offset)
+    html = get_one_page(url)
+    for item in parse_one_page(html):
+        print(item)
+        write_to_file(item)
+
+
+
+☆☆☆ 全部：
+
+import json
+import requests
+from requests.exceptions import RequestException
+import re
+import time
+ 
+def get_one_page(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.text
+        return None
+    except RequestException:
+        return None
+ 
+def parse_one_page(html):
+    pattern = re.compile('<dd>.*?board-index.*?>(\d+)</i>.*?data-src="(.*?)".*?name"><a'
+                         + '.*?>(.*?)</a>.*?star">(.*?)</p>.*?releasetime">(.*?)</p>'
+                         + '.*?integer">(.*?)</i>.*?fraction">(.*?)</i>.*?</dd>', re.S)
+    items = re.findall(pattern, html)
+    for item in items:
+        yield {
+            'index': item[0],
+            'image': item[1],
+            'title': item[2],
+            'actor': item[3].strip()[3:],
+            'time': item[4].strip()[5:],
+            'score': item[5] + item[6]
+        }
+ 
+def write_to_file(content):
+    with open('result.txt', 'a', encoding='utf-8') as f:
+        f.write(json.dumps(content, ensure_ascii=False) + '\n')
+ 
+def main(offset):
+    url = 'http://maoyan.com/board/4?offset=' + str(offset)
+    html = get_one_page(url)
+    for item in parse_one_page(html):
+        print(item)
+        write_to_file(item)
+ 
+if __name__ == '__main__':
+    for i in range(10):
+        main(offset=i * 10)
+        time.sleep(1)      # 猫眼多了反爬虫，如果速度过快，则会无响应，所以这里又增加了一个延时等待
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
