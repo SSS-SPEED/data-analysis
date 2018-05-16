@@ -1,49 +1,47 @@
+﻿
+快捷键相关：
+Ctrl + L             清空控制台
 
-��ݼ���أ�
-Ctrl + L             ��տ���̨
+工作空间相关：
+getwd()                # 获得当前的工作空间
+setwd("C:/Users/zl/R.workspace/hello world")    # 设置新的工作空间，注意文件夹自己建好，其次用的是/不是\
+q()                    # 退出程序，会询问是否保存.RData文件
+load(".RData")         # 加载编程文件，需要当前工作空间正确，不然会加载失败
+source("XXX.R")        # 加载脚本文件
+sink("XXX")            # 输出到文件XXX，会覆盖，需要append=TRUE来追加
+bmp("filename.bmp")    # BMP文件的输出
+jpeg("filename.jpg")   # JPEG文件的输出，同理有png，pdf，svg
+dev.off                # 输出图形后用这个返回终端
 
-�����ռ���أ�
-getwd()                # ��õ�ǰ�Ĺ����ռ�
-setwd("C:/Users/zl/R.workspace/hello world")    # �����µĹ����ռ䣬ע���ļ����Լ����ã�����õ���/����\
-q()                    # �˳����򣬻�ѯ���Ƿ񱣴�.RData�ļ�
-load(".RData")         # ���ر���ļ�����Ҫ��ǰ�����ռ���ȷ����Ȼ�����ʧ��
-source("XXX.R")        # ���ؽű��ļ�
-sink("XXX")            # ������ļ�XXX���Ḳ�ǣ���Ҫappend=TRUE��׷��
-bmp("filename.bmp")    # BMP�ļ������
-jpeg("filename.jpg")   # JPEG�ļ��������ͬ����png��pdf��svg
-dev.off                # ���ͼ�κ�����������ն�
-
-.RData                 # ÿ��R���Եı���ļ���������ɴ򿪣��ϴε����ݻ��ڣ����ǻ��������羫ȷ�ȣ���Ҫ��������
-.Rhistory              # �������ʷ��¼
-.R                     # �ű��ļ���ͨ��source("XXX")��������
-
-
-hellp world��
-
-age <- c(1,3,4,2,11,9,3,9,12,3)       # ��������
-weight <- c(4.4,5.3,7.2,5.2,8.5,7.3,6.0,10.4,10.2,6.1)       # ��������
-mean(weight)      # �õ����ص�ƽ��ֵ
-sd(weight)        # �õ����صı�׼��
-cov(age,weight)   # �õ����䣬���ص�Э����
-cor(age,weight)   # �õ����䣬���ص����ϵ��
-plot(age,weight)  # ��ͼ
+.RData                 # 每个R语言的编程文件，点击即可打开，上次的数据还在，但是环境（比如精确度）需要重新设置
+.Rhistory              # 命令的历史记录
+.R                     # 脚本文件，通过source("XXX")函数加载
 
 
+hellp world：
 
-����������� ���ݽṹ �����������
-
-��ֵ�ͣ�1,2,3       �ַ��ͣ�"one"��"two"       �߼��ͣ�TRUE��FALSE
-
-������һά���飬ʹ��c()������
-      a <- c(1, 2, 33, 22, 44)        # ͬһ��������洢��ͬ���͵�����
-      a[2]          ---- 2            # ��������a�еĵڶ���Ԫ�أ������Ǵ�1��ʼ������0
-      a[c(1,3,5)]   ---- 1 33 44      # ��������a�еĵ�1��3��5��Ԫ��
-      a[4:6]        ---- 22 44 NA     # ����4��6λ��Ԫ��
-������ֻ��һ��Ԫ�ص�����������f <- 3��g <- "US"������Ҫc()
-
-���󣺶�ά���飬ÿ��Ԫ�ر�������ͬ�����ͣ�ͨ��matrix()����
+age <- c(1,3,4,2,11,9,3,9,12,3)       # 输入年龄
+weight <- c(4.4,5.3,7.2,5.2,8.5,7.3,6.0,10.4,10.2,6.1)       # 输入体重
+mean(weight)      # 得到体重的平均值
+sd(weight)        # 得到体重的标准差
+cov(age,weight)   # 得到年龄，体重的协方差
+cor(age,weight)   # 得到年龄，体重的相关系数
+plot(age,weight)  # 制图
 
 
+
+☆☆☆☆☆☆☆☆☆☆ 数据结构 ☆☆☆☆☆☆☆☆☆☆
+
+数值型：1,2,3       字符型："one"，"two"       逻辑型：TRUE，FALSE
+
+向量：一维数组，使用c()来创建
+      a <- c(1, 2, 33, 22, 44)        # 同一向量必须存储相同类型的数据
+      a[2]          ---- 2            # 访问向量a中的第二个元素，这里是从1开始，不是0
+      a[c(1,3,5)]   ---- 1 33 44      # 访问向量a中的第1，3，5的元素
+      a[4:6]        ---- 22 44 NA     # 访问4到6位的元素
+标量：只含一个元素的向量，例如f <- 3，g <- "US"，不需要c()
+
+矩阵：二维数组，每个元素必须是相同的类型，通过matrix()创建
 
 
 
