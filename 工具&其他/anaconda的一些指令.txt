@@ -1,0 +1,16 @@
+﻿conda list            展示所有配置
+conda env list        环境列表
+conda upgrade --all   更新所有配置，之后按y
+
+
+列出已安装的包
+conda list
+安装包
+conda install pandas
+卸载包
+conda remove pandas
+更新包
+conda update pandas
+寻找包
+conda search XXXX      例如pan
+

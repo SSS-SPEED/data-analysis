@@ -1,0 +1,20 @@
+﻿
+r 读模式
+w 写模式   
+a 追加模式
+
+
+info = '1111111111\n222222222\n3333333'     # \n是换行              
+
+f = open(r'C:\Users\zl\Desktop\车主管家\笔记\python\empty.txt', 'w')    # 如果该txt没有，则是创建
+f.write(info)                                                           # 这个写指的是删除原有的，添上新的，如果是a，这就是追加
+f.close()                                                               # 一定要记得关
+
+f = open(r'C:\Users\zl\Desktop\车主管家\笔记\python\empty.txt')
+while True:
+    line = f.readline()      # 换行符也会读出来，意味着输出是空
+    if len(line) == 0:
+        break
+    else:
+        print (line)
+f.close()                    # 一定要记得关

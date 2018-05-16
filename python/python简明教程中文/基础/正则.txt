@@ -1,0 +1,150 @@
+﻿
+http://tool.oschina.net/regex/#        在线正则表达式判断
+
+python:
+
+import re   # 必须导入re包
+
+re.I是忽略大小写
+re.S是使.匹配包括换行符在内的所有字符
+re.M是多行匹配，影响^和$
+re.U是根据Unicode字符集解析字符。这个标志影响\w、\W、 \b和\B
+
+转义字符是\，比如.表示任意字符（除换行符），那么\.就单单表示.
+
+
+re.match函数:
+
+re.match 尝试从字符串的起始位置匹配一个模式，
+         注意，如果不是起始位置匹配成功的话，返回none，一定从起始位置匹配
+re.match(pattern, string, flags=0)      匹配规则，内容，标志位（可以省略）
+re.match(pattern, start, end)           匹配规则，从第几位开始找，第几位结束
+
+print(re.match('abcd','abcd111').span())           输出(0, 4)，span()表示匹配的位置，也可以分解成.start(0)与.end(0) 
+print(re.match('abcd','abcd111').group())          输出abcd，group()表示匹配的内容
+print(re.match('abcd','1111abcd111'))              输出None，因为起始位就匹配不上，不管后面的内容的
+print(re.match('abcd','abcD111',re.I).group())     输出abcD，原本因为大小写匹配不上，但是re.I是忽略大小写的
+
+
+re.search函数:
+
+re.search 扫描整个字符串并返回第一个成功的匹配
+re.search(pattern, string, flags=0)     与re.match类似
+
+print(re.search('com', 'www.runoob.com').span())   输出(11, 14)，span()表示匹配的位置，不与match一样必须是起始位匹配
+
+text = '0022ddduu92ffsd0393'
+print(re.search(r'(\d\d)(\d)',text).group(1))      输出00，group(1)函数跟(\d\d)(\d)中括号位置有关，第一个括号就是1
+print(re.search(r'(\d\d)(\d)',text).group(2))      输出2，如果一个括号都没，就会报错
+
+
+re.sub函数:
+
+re.sub 将原句中符合匹配的部分，变成指定的字符串
+re.sub(pattern, repl, string, count=0, flags=0)
+       匹配规则，替换的内容，原内容，需要替换的次数（0表示所有，可以省略），标志位（可以省略）
+
+phone = '939-3432-2323 # 这是一个电话号码'
+print(re.sub(r'#.*$', '没啦', phone))         将#后的文字全部替换成'没啦'，输出939-3432-2323 没啦
+print(re.sub(r'\D', '', phone))               将非数字替换成''，输出93934322323
+
+其中repl（替换的内容）也可以是一个函数
+def double(matched):                          
+    value = int(matched.group('value'))       见group(1)，转成int，返回原值2倍
+    return str(value * 2)
+ 
+s = 'A23G4HFD567'
+print(re.sub('(?P<value>\d+)', double, s))    ?P<value>表示符合这个括号的每一组，命名为value，这个组就是(\d+)
+                                              repl可以是一个函数
+                                              将所有符合匹配的数字，经过函数转换成2倍，替换原有内容里面的数字
+
+
+re.compile函数:
+
+re.compile 函数用于编译正则表达式，生成一个正则表达式（ Pattern ）对象，供 match() 和 search() 这两个函数使用。
+re.compile(pattern[, flags])                  就是塞一个匹配式，选加flags
+
+pattern = re.compile(r'\d+')                   用于匹配至少一个数字
+m = pattern.match('one12twothree34four')       查找头部，没有匹配
+print (m)                                      输出None
+
+
+findall函数:（是pattern.findall）
+
+在字符串中找到正则表达式所匹配的所有子串，并返回一个列表，如果没有找到匹配的，则返回空列表。
+match和search是匹配一次，findall匹配所有
+pattern = re.compile(r'\d+')   # 查找数字
+result1 = pattern.findall('runoob 123 google 456')           输出['123', '456']
+result2 = pattern.findall('run88oob123google456', 0, 10)     输出['88', '12']，规定了起始，结束位
+
+for result in results:
+    print(result)
+    print(result[0], result[1], result[2])
+
+
+re.split函数:
+
+将一个字符串按指定的匹配规则分割成数组
+re.split('\W+', 'runoob, runoob, runoob.')     输出['runoob', 'runoob', 'runoob', '']，\W+匹配任意不是字母，数字，下划线，汉字的字符    
+                                               空格与.都不符合，所以要分割，所以最后一个是''
+re.split('\W+', ' runoob, runoob, runoob.', 1) 输出['', 'runoob, runoob, runoob.']，参数1代表只分隔一次
+re.split('a*', 'hello world')                  输出['hello world']，找不到，所以split不会对其作出分割
+
+
+贪婪模式与非贪婪模式：
+
+.*：    匹配任意数量字符（除换行符）   贪婪模式，尽可能匹配多的字符
+.*?：   匹配任意数量字符（除换行符）   非贪婪模式，匹配尽可能少的字符    平时尽量用这个，还有不要放末尾，不然就是空
+
+content = 'Hello 1234567 World_This is a Regex Demo'
+result = re.match('^He.*(\d+).*Demo$', content)     # 尽量匹配，就是 1234567
+print(result.group(1))                              # 只匹配到了7          贪婪模式
+
+result = re.match('^He.*?(\d+).*Demo$', content)    # 尽可能少的匹配，就是 
+print(result.group(1))                              # 匹配到了1234567      非贪婪模式
+
+
+
+
+网络抓取示例：
+
+html = '''<div id="songs-list">
+    <h2 class="title">经典老歌</h2>
+    <p class="introduction">
+        经典老歌列表
+    </p>
+    <ul id="list" class="list-group">
+        <li data-view="2">一路上有你</li>
+        <li data-view="7">
+            <a href="/2.mp3" singer="任贤齐">沧海一声笑</a>
+        </li>
+        <li data-view="4" class="active">
+            <a href="/3.mp3" singer="齐秦">往事随风</a>
+        </li>
+        <li data-view="6"><a href="/4.mp3" singer="beyond">光辉岁月</a></li>
+        <li data-view="5"><a href="/5.mp3" singer="陈慧琳">记事本</a></li>
+        <li data-view="5">
+            <a href="/6.mp3" singer="邓丽君"><i class="fa fa-user"></i>但愿人长久</a>
+        </li>
+    </ul>
+</div>'''
+
+抓li标签下class为active的歌手singer字段的="(值)">(值2)，以</a>结尾
+result = re.search('<li.*?active.*?singer="(.*?)">(.*?)</a>', html, re.S)    # 基本要注意换行
+if result:
+    print(result.group(1), result.group(2))
+
+
+li标签里面有a标签，先用sub将a标签变成‘’，之后在匹配
+html = re.sub('<a.*?>|</a>', '', html)
+print(html)
+results = re.findall('<li.*?>(.*?)</li>', html, re.S)
+for result in results:
+    print(result.strip())
+
+
+
+
+
+
+

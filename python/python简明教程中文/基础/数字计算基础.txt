@@ -1,0 +1,29 @@
+﻿如何查询函数的用法：
+help(round)
+
+
+查询类别：
+type(3.14)
+<class 'float'>
+
+type('我是')
+<class 'str'>
+
+求绝对值：
+abs(-1.2)
+1.2
+
+四舍五入
+round(1.234)或者round(1.234,2)   数字 + 位数，默认整数
+1.23
+
+幂函数
+pow(2,3) #2的3次方
+8
+
+math模块（需要导入math）
+import math
+math.floor(32.8) #取整，不是四舍五入
+32.0
+math.sqrt(4) #开平方
+2.0

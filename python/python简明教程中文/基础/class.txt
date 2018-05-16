@@ -1,0 +1,101 @@
+﻿
+python中import和from...import区别：
+import sys                           是sys.argv调用
+from sys import argv,path            则是用argv代替了原有的sys.argv
+
+
+
+ 
+调用类的方法
+class Person:
+    def sayhi(self):       类的方法必须加一个self
+        print ('hi')
+
+p = Person()
+p.sayhi()                  调用类的方法的时候忽略了self参数
+
+
+重构类，增加参数
+class Person:
+    def __init__(self, name):      __init__就是重构这个类
+        self.name = name           往类内部加参数
+    def sayhi(self):
+        print (self.name)
+
+p = Person('小明')
+p.sayhi()
+
+def powersum(power, *args):        可变数量的参数的写法
+powersum(2, 3, 4)
+
+
+类的参数的绑定关系
+class Person:
+    population = 0                               公共参数
+
+    def __init__(self, name):
+        self.name = name                         被绑定为当前self
+        print ('init后的name是', self.name)
+        Person.population += 1                   公共参数加1
+
+    def sayHi(self):
+        print ('my name is', self.name)
+
+    def how(self):
+        if Person.population == 1:
+            print ('人数是1')
+        else:
+            print ('人数是', Person.population)
+
+p = Person('哈哈')                
+p.sayHi()
+p.how()
+
+s = Person('呵呵')
+s.sayHi()
+s.how()                                          输出是公共参数，所以是2
+
+p.sayHi()                                        输出是self，所以还是哈哈
+p.how()                                          输出是公共参数，所以是2
+
+
+继承
+class SchoolMember:                              基类
+    def __init__(self, name, age):               基类的重构函数
+        self.name = name
+        self.age = age
+
+    def tell(self):                              基类的一个方法，结果是不会被调用
+        print ('我是', self.name, '年龄是', self.age)
+    
+
+class Teacher(SchoolMember):
+    def __init__(self, name, age, salary):
+        SchoolMember.__init__(self, name, age)   基类重构
+        self.salary = salary 
+
+    def tell(self):
+        print ('我是', self.name, '年龄是', self.age, '薪水是', self.salary)
+
+
+class Student(SchoolMember):
+    def __init__(self, name, age, marks):
+        SchoolMember.__init__(self, name, age)   基类重构
+        self.marks = marks
+
+    def tell(self):
+        print ('我是', self.name, '年龄是', self.age, '成绩是', self.marks)
+
+
+t = Teacher('老师1', 40, 30000)
+s = Student('学生1', 22, 75)
+
+members = [t, s]                  t与s变成一个数组
+for member in members:
+    member.tell()                 挨个调用各自的tell方法
+
+
+
+
+
+

@@ -1,0 +1,35 @@
+﻿import os
+import time
+
+# 源文件的路径（数组），但是压缩后解压，会有Users\zl\Desktop....这些多余的文件夹
+source = [r'C:\Users\zl\Desktop\车主管家\笔记\python\文档\python简明教程中文.pdf']
+
+# 备份的地址，注意是到“文档”的子集，根据\判断，os.sep就是\
+target_dir = r'C:\Users\zl\Desktop\车主管家\笔记\python\文档' + os.sep
+
+# 我们需要分天数来备份
+today = target_dir + time.strftime('%Y%m%d')
+now = time.strftime('%H%M%S')
+
+if not os.path.exists(today):
+    os.mkdir(today) # 创建文件夹
+    print ('创建文件夹成功')
+
+comment = input('请输入备注：')
+
+# 完整备份文件路径
+if(len(comment) == 0):
+    target = today + os.sep + now + '.zip'
+else:
+    target = today + os.sep + now + '_' + comment + '.zip'
+
+
+# 命令，WinRAR.exe完整路径，a是压缩，目标文件，源文件数组的联合（用' '隔开）
+rar_command= r'"C:\Program Files (x86)\WinRAR\WinRAR.exe" a %s %s'%(target,' '.join(source))
+
+if os.system(rar_command) == 0:  # 成功执行应返回0
+    print ('备份成功', target)
+else:
+    print ('备份失败')
+
+# C:\Program Files (x86)\WinRAR\WinRAR.exe
