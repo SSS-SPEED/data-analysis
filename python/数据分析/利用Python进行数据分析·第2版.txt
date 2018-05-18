@@ -1,25 +1,31 @@
-
+﻿
 一些介绍：
-
 NumPy      Numerical Python                 科学计算的基础包         
 pandas     Python Data Analysis Library     基于NumPy的一种工具，为了解决数据分析任务而创建的
 matplotlib                                  用于绘制图表和其它二维数据可视化的Python库
-SciPy                                       专门解决科学计算中各种标准问题域的包的集合
 
 
+常用模块命名惯例：
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+import statsmodels as sm
 
 
+使用2种方式编写代码：
+IPython Shell：     Anaconda Prompt输入"ipython"
+jupyter notebook：  Anaconda Prompt输入"jupyter notebook"
 
-
-
-
-
-
-
-
-
-
-
+小技巧：
+1.使用Tab进行代码补全
+2.使用?，??显示对象或者方法的信息
+3.使用%run或者%load命令执行或导入已有的Python程序      
+             %run ipython_script_test.py          ---执行
+             %load ipython_script_test.py         ---导入
+4.字符串的模板化    template = '{0:.2f} {1:s} are worth US${2:d}'            .2f-两位小数的浮点数
+          	    template.format(4.5560, 'Argentine Pesos', 1)              s-字符串
+          	    得到：'4.56 Argentine Pesos are worth US$1'                d-整数
 
 
 
