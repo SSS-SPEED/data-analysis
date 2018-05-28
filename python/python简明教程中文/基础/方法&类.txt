@@ -1,0 +1,118 @@
+﻿
+import sys                           是sys.argv调用
+from sys import argv                 是用argv代替了原有的sys.argv
+from pyquery import PyQuery as pq    是用pq代替了pyquery.PyQuery
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 方法 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+普通：
+def sayHi(word):                定义了一个叫做sayHi的方法，需要一个word参数
+    print(word)
+
+if __name__ == '__main__':      程序入口
+    sayHi('Hi')                 调用sayHi方法，并传递参数
+
+可变长参数：
+def add(name, *args, **kwargs):                    *args     普通可变长参数列表
+    print(name)                                    **kwargs  键值可变长参数列表
+    for arg in args:
+        print (arg)                                或者用args[0]这种形式
+    for key in kwargs:
+        print ("%s: %s" % (key, kwargs[key]))
+
+add('测试', "first", 2, 3, value1="1", value2=2)   可以2种可变长参数放在一起
+
+ 
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 类class ☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+普通：
+class Person:              定义了一个叫做Person的类
+    def sayhi(self):       类的方法必须加一个self
+        print ('hi')
+
+p = Person()
+p.sayhi()                  调用类的方法的时候忽略了self参数
+
+
+重构类，增加参数：
+class Person:
+    def __init__(self, name):      __init__就是重构这个类，这里需要传name
+        self.name = name           往类内部加参数
+    def sayhi(self):
+        print (self.name)
+
+p = Person('小明')
+p.sayhi()
+
+
+类的参数的绑定关系：
+class Person:
+    population = 0                               设定的公共参数
+
+    def __init__(self, name):
+        self.name = name                         被绑定为当前self
+        print ('init后的name是', self.name)
+        Person.population += 1                   公共参数加1
+
+    def sayHi(self):
+        print ('my name is', self.name)
+
+    def how(self):
+        if Person.population == 1:
+            print ('人数是1')
+        else:
+            print ('人数是', Person.population)
+
+p = Person('哈哈')                               示例化一个Person          
+p.sayHi()                                        输出的是之前传入的'哈哈'
+p.how()                                          classPerson的公共参数是1
+
+s = Person('呵呵')                               再次实例化一个Person
+s.sayHi()                                        输出的是之前传入的'呵呵'
+s.how()                                          输出是公共参数，所以是2
+
+p.sayHi()                                        是p，所以还是'哈哈'
+p.how()                                          输出是公共参数，所以是2
+
+
+继承：
+class SchoolMember:                              # 基类
+    def __init__(self, name, age):               # 基类的重构函数
+        self.name = name
+        self.age = age
+
+    def tell(self):                              # 基类的一个方法
+        print ('我是', self.name, '年龄是', self.age)
+    
+
+class Teacher(SchoolMember):                     # 集成了基类SchoolMember
+    def __init__(self, name, age, salary):
+        SchoolMember.__init__(self, name, age)   
+        self.salary = salary 
+
+    def tell(self):
+        print ('我是', self.name, '年龄是', self.age, '薪水是', self.salary)
+
+
+class Student(SchoolMember):
+    def __init__(self, name, age, marks):
+        SchoolMember.__init__(self, name, age)   
+        self.marks = marks
+
+    def tell(self):
+        print ('我是', self.name, '年龄是', self.age, '成绩是', self.marks)
+
+
+t = Teacher('老师', 40, 30000)
+s = Student('学生', 22, 75)
+
+members = [t, s]                  # t与s变成一个数组
+for member in members:
+    member.tell()                 # 挨个调用各自的tell方法
+
+
+
+
+
+
