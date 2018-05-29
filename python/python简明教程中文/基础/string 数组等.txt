@@ -1,78 +1,233 @@
 ﻿
-String：
+
+☆☆☆☆☆☆☆☆☆☆☆☆  String  ☆☆☆☆☆☆☆☆☆☆☆☆
 
 name = 'Swaroop'
-if name.startswith('Swa'):       是否以Swa开头
-if 'a' in name:                  是否含有a
-name.find('war') != -1:          是否包含war
-name[1:3]                        输出wa
-name[:]                          输出Swaroop
+if name.startswith('Swa'):       # 是否以Swa开头
+if 'a' in name:                  # 是否含有a
+name.find('war') != -1:          # 是否包含war
+name[1:3]                        # 输出wa
+name[:]                          # 输出Swaroop
 
 delimiter = '_*_'
 mylist = ['Brazil', 'Russia', 'India', 'China']
-print (delimiter.join(mylist))                         在每个元素前后都插入_*_
-输出：Brazil_*_Russia_*_India_*_China
+print (delimiter.join(mylist))                         # 在每个元素前后都插入_*_---Brazil_*_Russia_*_India_*_China
 
 
 
-数组：
+☆☆☆☆☆☆☆☆☆☆☆☆  列表  ☆☆☆☆☆☆☆☆☆☆☆☆
 
 shoplist = ['apple', 'mango', 'carrot', 'banana']
 
-shoplist[-1]               输出banana，-1代表最后一位
-shoplist.append('rice')    增加
-del shoplist[0]            删除
-shoplist.sort()            排序
+shoplist[-1]               # 输出banana，-1代表最后一位
+shoplist.append('rice')    # 添加
+shoplist.insert(2, 'red')  # 添加red至位置2
+del shoplist[0]            # 删除
+shoplist.pop(2)            # 删除shoplist第2位，并且返回该位置的值，insert的逆运算
+shoplist.remove('apple')   # 删除列表中的第一个'apple'
+shoplist.sort()            # 排序
+shoplist.sort(key=len)     # 按长度进行排序
+'mango' in shoplist        # 检查元素是否在列表里面，not in是相反
 
-mylist = shoplist          不要这样复制，会跟随shoplist变化
-mylist = shoplist[:]       这样复制
+mylist = shoplist          # 不要这样复制，会跟随shoplist变化
+mylist = shoplist[:]       # 应该这样复制
+
+list(range(10))            # 快速生成[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]数组
+
+串联列表：
+[4, None, 'foo'] + [7, 8, (2, 3)]      # 使用+号直接串联---[4, None, 'foo', 7, 8, (2, 3)]
+
+x = [4, None, 'foo']
+x.extend([7, 8, (2, 3)])               # 使用extend在已经定义的列表上追加---[4, None, 'foo', 7, 8, (2, 3)]  
+
+everything = []
+for chunk in list_of_lists:            # 新建列表的一般方法
+    everything.extend(chunk)           # 速度快
+    everything = everything + chunk    # 速度慢
+
+二分法搜索：
+import bisect                          # 需要导入bisect模块
+c = [1, 2, 2, 2, 3, 4, 7] 
+bisect.bisect(c, 3)                    # 二分法，从中间开始找，3比2大，接着从右边中心找。。。---5
+bisect.bisect(c, 6)                    # 虽然没有数值6，找到近似位会停止---6
+bisect.insort(c, 6)                    # 在bisect(c, 6)的结果位置上，往数组里添加6
+
+切片：
+seq = [7, 2, 3, 7, 5, 6, 0, 1]
+seq[1:5]                               # 取第1位(含)至第5位(不含)的值---[2, 3, 7, 5]
+seq[3:4] = [6, 3]                      # 对第3第4位赋值---[7, 2, 3, 6, 3, 5, 6, 0, 1]
+seq[:5]                                # 省略开头的切片---[7, 2, 3, 7, 5]
+seq[-6:-2]                             # 负数代表从后往前---[3, 7, 5, 6]
+seq[::3]                               # 隔3-1=2个取值---[7, 7, 0]
+seq[::-1]                              # 负数是倒过来，-2就是倒过来隔1个数取---[1, 0, 6, 5, 7, 3, 2, 7]
+
+
+使用enumerate代替for(i=0....)遍历数组：
+普通：
+i = 0
+for value in collection:
+   XXXXXXXXX
+   i += 1
+简化：---enumerate方法
+for i, value in enumerate(collection):
+   mapping[v] = i                        # i是序列号，v是值	
+
+zip函数：
+seq1 = ['foo', 'bar', 'baz']
+seq2 = ['one', 'two', 'three']
+list(zip(seq1, seq2))                             # zip合并数组---[('foo', 'one'), ('bar', 'two'), ('baz', 'three')]
+for i, (a, b) in enumerate(zip(seq1, seq2)):      # 有点类似于解压
+    print('{0}: {1}, {2}'.format(i, a, b))        # i是序号，a是seq1里的值，b是seq2
+输出结果：
+0: foo, one
+1: bar, two
+2: baz, three
 
 
 
-元祖：
-zoo = ('wolf', 'elephant', 'penguin')     元祖内部的值无法改动
+☆☆☆☆☆☆☆☆☆☆☆☆  元祖  ☆☆☆☆☆☆☆☆☆☆☆☆
+
+zoo = ('wolf', 'elephant', 'penguin')     # 元祖内部的值一般无法改动       
 
 age = 22
 name = 'Swaroop'
-print ('%s is %d years old' %(name, age)) 使用元祖输出
+print ('%s is %d years old' %(name, age)) # 使用元祖输出
+
+如果元组中的某个对象是可变的
+比如列表，可以在原位进行修改：
+tup = tuple(['foo', [1, 2], True])        # 使用tuple可以将任意序列或迭代器转换成元组 
+tup[1].append(3)
+tup 或者 tup[0]                           # 访问元祖的方法
+
+tup = (4, None, 'foo') + (6, 0) + ('bar',)     # 加号可以将元组串联起来
+tup = ('foo', 'bar') * 4                       # 乘法可以将几个元组的复制串联起来
+
+tup = (4, 5, 6)
+a, b, c = tup                             # 拆分元祖---b=5
+tup = 4, 5, (6, 7)                     
+a, b, (c, d) = tup                        # 拆分元祖是很彻底的---c=6
+
+a, b = 1, 2
+b, a = a, b                               # 简单的替换变量名字
+
+seq = [(1, 2, 3), (4, 5, 6), (7, 8, 9)]                
+for a, b, c in seq:
+    print('a={0}, b={1}, c={2}'.format(a, b, c))
+输出：
+a=1, b=2, c=3              # 会发现a=1,4,7，b=2,5,8，c=3,6,9
+a=4, b=5, c=6
+a=7, b=8, c=9
+
+values = 1, 2, 3, 4, 5
+a, b, *_ = values          # *_表示舍弃的部分，也可以写成*rest，只要有*
+print(_)                   # 输出就是[3, 4, 5]
+
+a = (1, 2, 2, 2, 3, 4, 2)
+a.count(2)                 # 测量2在a里面出现的次数
 
 
-字典：
-ab={'键1':'值1',           标准写法
+
+☆☆☆☆☆☆☆☆☆☆☆☆  字典  ☆☆☆☆☆☆☆☆☆☆☆☆
+
+字典的值可以是任意Python对象
+ab={'键1':'值1',           # 标准写法
     '键2':'值2',
     '键3':'值3',}
 
-print ('输出键2的值为%s' %(ab['键2']))     标准输出
-ab['键4']='值4'                            添加一组键值对
-del ab['键1']                              删除对应的键值对
-for name, address in ab.items():           键值对的轮询
+d1 = {'a' : 'some value', 'b' : [1, 2, 3, 4]}      # 也可以放数组
+
+print ('输出键2的值为%s' %(d1['b']))               # 标准输出---输出键2的值为[1, 2, 3, 4]
+value = d1.get('c', 'defualt')                     # 标准取值，没有取到的话就返回默认值
+d1['dd'] = 'an integer'                            # 添加一组键值对'dd':'an integer'    
+del d1['b']                                        # 删除键值对
+v = d1.pop('b')                                    # 也是删除，但能等到被删除的值，v=[1, 2, 3, 4]
+for name, address in d1.items():                   # 键值对的轮询
     print(name,'的值是',address)
-if '键2' in ab:                            查询是否含有指定键值对
-    print(ab['键2'])
+'a' in d1                                          # 查询是否有'a'键，不能查值键---True          
+list(d1.keys())                                    # 得到键的数组
+list(d1.values())                                  # 得到值的数组
+d1.update({'b' : 'foo', 'c' : 12})                 # update能融合另一个字典，相同的键里面的值会被覆盖
+
+listone = [2, 3, 4]                             # 为数字内大于2的值，增加一倍
+listtwo = [2*i for i in listone if i > 2]       # 2不符合，所以只有3、4参与
+print (listtwo)                                 # [6, 8]
+
+使用2个数组创建一个字典的方法：
+mapping = {}
+for key, value in zip(key_list, value_list):
+    mapping[key] = value
+
+根据首字母归类：
+words = ['apple', 'bat', 'bar', 'atom', 'book']
+by_letter = {}                                     # 创建一个字典
+for word in words:                                 # 数组的轮询 
+    letter = word[0]                               # 获得首字母
+    if letter not in by_letter:                    # 如果首字母不在字典里面，添加一组键值对
+        by_letter[letter] = [word]
+    else:                                          # 否则键值对的值添加单词（这个值是一个数组）
+        by_letter[letter].append(word)
+print(by_letter)                                   # {'a': ['apple', 'atom'], 'b': ['bat', 'bar', 'book']}
+简化：---setdefault方法
+for word in words:
+    letter = word[0]                               # 还是需要获得首字母
+    by_letter.setdefault(letter, []).append(word)  # 设置默认键，值初始为空数组[]，有新值就append
 
 
-为数字内大于2的值，增加一倍
-listone = [2, 3, 4]
-listtwo = [2*i for i in listone if i > 2]
-print (listtwo)
+
+☆☆☆☆☆☆☆☆☆☆☆☆  集合  ☆☆☆☆☆☆☆☆☆☆☆☆
+
+集合是无序的不可重复的元素的集合。你可以把它当做字典，但是只有键没有值。
+
+通过set函数或使用尖括号set语句创建集合：
+set([2, 2, 2, 1, 3, 3])          # {1, 2, 3}，所以是不可重复的
+{2, 2, 2, 1, 3, 3}               # {1, 2, 3}
+
+a = {1, 2, 3, 4, 5}
+b = {3, 4, 5, 6, 7, 8}
+a | b                            # 合集，a.union(b)---{1, 2, 3, 4, 5, 6, 7, 8}
+a & b                            # 交集，a & b---{3, 4, 5}
+a.add(6)                         # 往集合a里添加元素6
+a.clear()                        # 清空集合a
+a.remove(2)                      # 去除集合a里面的2，如果没有这个值就会报错
+c = a.copy()                     # 拷贝集合a
+{1, 2, 3} == {3, 2, 1}           # 答案是True
 
 
 
+☆☆☆☆☆☆☆☆☆☆☆☆  超级推导式  ☆☆☆☆☆☆☆☆☆☆☆☆
+
+列表、集合和字典推导式：
+[expr for val in collection if condition]    ---列表，expr是想要的值
+等同于：
+result = []
+for val in collection:
+    if condition:
+        result.append(expr)
+例子：
+strings = ['a', 'as', 'bat', 'car', 'dove', 'python']
+list = [x.upper() for x in strings if len(x) > 2]         # 自动大写，长度大于2
+print(list)                                               # ['BAT', 'CAR', 'DOVE', 'PYTHON']
+list2 = {len(x) for x in strings}                         # {1, 2, 3, 4, 6}，注意是集合，不是列表，所以不会有重复
+list3 = set(map(len, strings))                            # {1, 2, 3, 4, 6}，上面的进一步简化
+
+dict_comp = {key-expr : value-expr for value in collection if condition}    ---字典
+set_comp = {expr for value in collection if condition}                      ---集合
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+嵌套列表推导式：
+all_data = [['John', 'Emily', 'Michael', 'Mary', 'Steven'],           # 假设有一组名字（2维数组），想要找到含有2个e的单词，组成列表
+            ['Maria', 'Juan', 'Javier', 'Natalia', 'Pilar']] 
+names_of_interest = []                                                # 创建列表
+for names in all_data:                                                # 第一个轮询，拆分二维数组到普通数组
+    enough_es = [name for name in names if name.count('e') >= 2]      # [expr for val in collection if condition]
+    names_of_interest.extend(enough_es)
+names_of_interest                                                     # 输出['Steven']
+简化：
+result = [name for names in all_data for name in names if name.count('e') >= 2]                                          
+# 分3段考虑，name | for names in all_data | for name in names if name.count('e') >= 2
+# name---想要的值
+# for names in all_data---第一个轮询，拆分二维数组到普通数组
+# for name in names if name.count('e') >= 2---[expr for val in collection if condition]，其中expr在最前面
 
 
 
