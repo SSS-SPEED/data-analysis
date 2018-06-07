@@ -13,7 +13,7 @@ re.U是根据Unicode字符集解析字符。这个标志影响\w、\W、 \b和\B
 转义字符是\，比如.表示任意字符（除换行符），那么\.就单单表示.
 
 
-re.match函数:
+////////// re.match函数 //////////
 
 re.match 尝试从字符串的起始位置匹配一个模式，
          注意，如果不是起始位置匹配成功的话，返回none，一定从起始位置匹配
@@ -26,7 +26,7 @@ print(re.match('abcd','1111abcd111'))              输出None，因为起始位�
 print(re.match('abcd','abcD111',re.I).group())     输出abcD，原本因为大小写匹配不上，但是re.I是忽略大小写的
 
 
-re.search函数:
+////////// re.search函数 //////////
 
 re.search 扫描整个字符串并返回第一个成功的匹配
 re.search(pattern, string, flags=0)     与re.match类似
@@ -38,7 +38,7 @@ print(re.search(r'(\d\d)(\d)',text).group(1))      输出00，group(1)函数跟(
 print(re.search(r'(\d\d)(\d)',text).group(2))      输出2，如果一个括号都没，就会报错
 
 
-re.sub函数:
+////////// re.sub函数 //////////
 
 re.sub 将原句中符合匹配的部分，变成指定的字符串
 re.sub(pattern, repl, string, count=0, flags=0)
@@ -59,7 +59,7 @@ print(re.sub('(?P<value>\d+)', double, s))    ?P<value>表示符合这个括号�
                                               将所有符合匹配的数字，经过函数转换成2倍，替换原有内容里面的数字
 
 
-re.compile函数:
+////////// re.compile函数 //////////
 
 re.compile 函数用于编译正则表达式，生成一个正则表达式（ Pattern ）对象，供 match() 和 search() 这两个函数使用。
 re.compile(pattern[, flags])                  就是塞一个匹配式，选加flags
@@ -69,7 +69,7 @@ m = pattern.match('one12twothree34four')       查找头部，没有匹配
 print (m)                                      输出None
 
 
-findall函数:（是pattern.findall）
+////////// findall函数（是pattern.findall）//////////
 
 在字符串中找到正则表达式所匹配的所有子串，并返回一个列表，如果没有找到匹配的，则返回空列表。
 match和search是匹配一次，findall匹配所有
@@ -82,7 +82,7 @@ for result in results:
     print(result[0], result[1], result[2])
 
 
-re.split函数:
+////////// re.split函数 //////////
 
 将一个字符串按指定的匹配规则分割成数组
 re.split('\W+', 'runoob, runoob, runoob.')     输出['runoob', 'runoob', 'runoob', '']，\W+匹配任意不是字母，数字，下划线，汉字的字符    
@@ -91,7 +91,7 @@ re.split('\W+', ' runoob, runoob, runoob.', 1) 输出['', 'runoob, runoob, runoo
 re.split('a*', 'hello world')                  输出['hello world']，找不到，所以split不会对其作出分割
 
 
-贪婪模式与非贪婪模式：
+////////// 贪婪模式与非贪婪模式 //////////
 
 .*：    匹配任意数量字符（除换行符）   贪婪模式，尽可能匹配多的字符
 .*?：   匹配任意数量字符（除换行符）   非贪婪模式，匹配尽可能少的字符    平时尽量用这个，还有不要放末尾，不然就是空
@@ -106,7 +106,7 @@ print(result.group(1))                              # 匹配到了1234567      �
 
 
 
-网络抓取示例：
+////////// 网络抓取示例 //////////
 
 html = '''<div id="songs-list">
     <h2 class="title">经典老歌</h2>

@@ -1,4 +1,6 @@
-﻿
+﻿[] 列表
+() 元祖
+{} 字典&&集合
 
 ☆☆☆☆☆☆☆☆☆☆☆☆  String  ☆☆☆☆☆☆☆☆☆☆☆☆
 
@@ -24,7 +26,7 @@ shoplist.append('rice')    # 添加
 shoplist.insert(2, 'red')  # 添加red至位置2
 del shoplist[0]            # 删除
 shoplist.pop(2)            # 删除shoplist第2位，并且返回该位置的值，insert的逆运算
-shoplist.remove('apple')   # 删除列表中的第一个'apple'
+shoplist.remove('apple')   # 删除列表中的第一个'apple'，若是找不到则会报错
 shoplist.sort()            # 排序
 shoplist.sort(key=len)     # 按长度进行排序
 'mango' in shoplist        # 检查元素是否在列表里面，not in是相反

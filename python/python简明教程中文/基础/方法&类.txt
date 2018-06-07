@@ -1,17 +1,33 @@
 ﻿
-import sys                           是sys.argv调用
-from sys import argv                 是用argv代替了原有的sys.argv
-from pyquery import PyQuery as pq    是用pq代替了pyquery.PyQuery
+import sys                           # 是sys.argv调用
+from sys import argv                 # 是用argv代替了原有的sys.argv
+from pyquery import PyQuery as pq    # 是用pq代替了pyquery.PyQuery
 
 
 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 方法 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆
 
 普通：
-def sayHi(word):                定义了一个叫做sayHi的方法，需要一个word参数
+def sayHi(word):                  # 定义了一个叫做sayHi的方法，需要一个word参数
     print(word)
 
-if __name__ == '__main__':      程序入口
-    sayHi('Hi')                 调用sayHi方法，并传递参数
+return的方法：
+def sayHi(word):      
+    if len(word)>100:              
+        return enough             # 如果传参word长度大于100，就返回enough
+                                  # 少一个else，故若是在else里面，就会return None
+print(sayHi('a lot of words'))    # 然而word长度并没有大于100，但是能得到返回None
+
+多个return的方法：
+def f():
+    a = 5
+    b = 6
+    c = 7
+    return a, b, c
+a, b, c = f()                     # return多个返回，这里a,b,c分别为5,6,7
+
+程序入口：
+if __name__ == '__main__':        # 程序入口
+    sayHi('Hi')                   # 调用sayHi方法，并传递参数
 
 可变长参数：
 def add(name, *args, **kwargs):                    *args     普通可变长参数列表
@@ -22,6 +38,18 @@ def add(name, *args, **kwargs):                    *args     普通可变长参�
         print ("%s: %s" % (key, kwargs[key]))
 
 add('测试', "first", 2, 3, value1="1", value2=2)   可以2种可变长参数放在一起
+
+错误处理：
+f = open(path, 'w')
+
+try:
+    write_to_file(f)
+except:
+    print('Failed')
+else:                       # 仅在try成功的情况下会执行
+    print('Succeeded')
+finally:
+    f.close()
 
  
 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 类class ☆☆☆☆☆☆☆☆☆☆☆☆☆☆
@@ -110,6 +138,142 @@ s = Student('学生', 22, 75)
 members = [t, s]                  # t与s变成一个数组
 for member in members:
     member.tell()                 # 挨个调用各自的tell方法
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 文件操作基础 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+////////////// 读文件 //////////////
+
+path = r'C:\Users\zl\Desktop\测试.txt'   # r一定要加，不然路径有问题
+path2 = r'C:\Users\zl\Desktop\sdsd.txt'
+f = open(path)        # 打开某个文件
+for line in f:
+    print(line)       # 打印每一行的数据，包括空格
+    pass
+lines = [x.rstrip() for x in open(path)]   # 把所有数据变成数组
+print(lines)          # 含''的数组：['测试', '   哈哈', '', '', '', '  dddd']
+f = open(path2,'w')   # 新建文件
+#f =open(path,'w')     # 会覆盖原来文件，打开就是空白
+f.close()
+
+# r   只读模式（默认模式）
+# w   只写模式，创建新文件（会删除同名文件）
+# a   将内容附加到现有文件（若不存在则会创建）
+# r+  读写模式
+
+////////////// 写文件 //////////////
+
+path = r'C:\Users\zl\Desktop\有内容.txt'   # r一定要加，不然路径有问题
+path2 = r'C:\Users\zl\Desktop\想要复制到.txt'
+
+with open(path2, 'w') as handle:          # with open()这样写可以替代f.close()
+    # 将有内容.txt里面的长度大于1的信息，复制到了想要复制到.txt
+    handle.writelines(x for x in open(path) if len(x) > 1)
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆ 高级类class ☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+////////////// 定义方法的列表 //////////////
+
+states = ['   Alabama ', 'Georgia!', 'Georgia', 'georgia', 'FlOrIda', 'south   carolina##', 'West virginia?']
+要对这组数据进行去空格，大写化，去特殊字符的处理
+
+普通：
+import re
+def clean_strings(strings):
+    result = []
+    for value in strings:
+        value = value.strip()                # 移除字符串头尾指定的字符，不填就是空格
+        value = re.sub('[!#?]', '', value)   # 将!#?替换成''
+        value = value.title()                # 首字母大写
+        result.append(value)
+    return result
+clean_strings(states)
+
+高级：（定义了一个方法的列表）
+import re
+
+# 这是一个列表，里面有3个方法
+# 写了3个方法：去首尾空格，去特殊字符，首字母大写
+clean_ops = [str.strip, remove_punctuation, str.title]
+
+def remove_punctuation(value):         # 去特殊字符的方法
+    return re.sub('[!#?]', '', value)
+
+def clean_strings(strings, ops):
+    result = []
+    for value in strings:
+        for function in ops:            # 轮询3个方法
+            value = function(value)     # 执行挨个方法 
+        result.append(value)
+    return result
+
+clean_strings(states, clean_ops)   # 入参：具体参数，需要的方法列表
+
+
+////////////// lambda函数（匿名函数） //////////////
+
+foo = [2, 18, 9, 22, 17, 24, 8, 12, 27]     # 初始数据
+
+lambda x: x % 3 == 0       # 冒号前是参数，可以有多个，用逗号隔开，冒号右边是返回值。
+                           # lambda语句构建的其实是一个函数对象
+
+list(filter(lambda x: x % 3 == 0, foo))     # filter(func,iter)函数：参数1是一个方法，参数2是数据
+                                                                     将满足func方法的数值过滤出来
+                                            # 结果：[18, 9, 24, 12, 27]
+ 
+reduce(lambda x, y: x + y, foo，1)          # reduce(func,iter)函数：仅能处理一个iter，init为初始化值
+                                            # 先将每个iter内部第一个值和init进行func处理，处理的结果再与iter第二个值进行func处理，直到结束
+                                            # 结果：140
+reduce(lambda x, y: x + y, foo)             # 没有init默认初始值也可以
+                                            # 结果：139
+
+foo = [2, 18, 9, 22, 17, 24, 8, 12, 27]
+foo2 = [2, 18, 9, 22, 17, 24, 8, 12, 27]
+foo3 = [2, 18, 9, 22, 17, 24, 8, 12, 27]
+
+list(map(lambda x,y,z:x+y+z, foo,foo2,foo3))     # map(func,iter1,iter2,..)可以处理多个iter，
+                                                 # 通过func方法对iter1,iter2,..进行处理，这里是数值的相加
+                                                 # 结果：[6, 54, 27, 66, 51, 72, 24, 36, 81]
+
+////////////// 生成器yield //////////////
+
+平时一个for..in..循环，都是一次性结束，使用生成器可以执行一次返回一次，可以next()继续
+
+def _make_gen():
+    for x in range(100):     
+        yield x ** 2
+gen = _make_gen()   # 将_make_gen()函数定义成一个生成器
+print(next(gen))    # 0，每次调用只是暂停，保留进度的
+print(next(gen))    # 1
+print(next(gen))    # 4
+print(next(gen))    # 9
+print(gen)          # 单独调用这个没有用，<generator object _make_gen at 0x0000000006E6CBF8>
+
+gen = (x ** 2 for x in range(100))  # 等价于上面的_make_gen()函数
+                                    # 区别于超级推导式，这里是()，那里是[]或{}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
