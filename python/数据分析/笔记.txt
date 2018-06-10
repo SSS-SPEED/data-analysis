@@ -1,0 +1,248 @@
+﻿
+
+NumPy（Numerical Python的简称）------提供科学计算的包
+
+基于NumPy的算法要比纯Python快10到100倍（甚至更快），并且使用的内存更少
+import numpy as np
+my_arr = np.arange(1000000)       # 使用numpy创建一百万的数组
+my_list = list(range(1000000))    # 普通创建一百万的数组
+# 同样是所有数据乘以2，使用numpy更快，耗费内存更小。%time是魔术贴，可以看时间
+%time for d in range(10): my_arr2 = my_arr * 2                  # 28 ms
+%time for d in range(10): my_list2 = [x * 2 for x in my_list]   # 1.19 s
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ ndarray ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+ndarray是NumPy使用的一种多维数组对象
+
+
+////////////// ndarray基础知识 //////////////
+import numpy as np
+data = np.random.randn(2, 3)   # 标准正态分布中返回一个或多个样本值
+                               # (2, 3)代表2维数组，每个数组3个对象，下面是返回形式
+                               # array([[-0.90261609, -0.97427165, -2.02332535],
+                                        [ 0.41177248,  1.57916877, -0.62622091]])
+data2 = np.random.rand(2, 3)   # 随机样本位于[0, 1)中
+
+data * 10                      # 所有的元素都乘以10
+data + data                    # 每个元素都与自身相加
+data.shape                     # 返回维度大小的元组---(2, 3)
+data.dtype                     # 返回数组数据类型---dtype('float64')
+
+
+////////////// 转化&&创建ndarray //////////////
+data1 = [6, 7, 8, 0, 1]  
+data2 = [[1, 2, 3, 4], [5, 6, 7, 8]] 
+arr1 = np.array(data1, dtype=np.int32))  # 将普通数组转化成ndarray，并设置类型int32
+arr2 = np.array(data2)                   # 转换为一个多维数组
+                                         # np.array会尝试为新建的这个数组推断出一个较为合适的数据类型
+np.zeros(10)          # 创建一个全0数组!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
+np.zeros((2,3,4))     # 创建一个多维数组
+np.ones((2,3,4))      # 创建一个全1的多维数组!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+np.empty(1,2)         # 创建新数组，分配内存空间不填充内容，但是打印出来有垃圾值
+np.eye(7)             # 创建N*N的正方单位矩阵（对角线为1，其他为0）
+np.arange(15)         # 创建一个有序数组---array([0, 1, 2, 3, 4, 5, 6])!!!!!!!!!!!!!!!!!!!!!!!!!!!
+np.arange(-1, 4, 2)   # -1是起始，4是结束（不含），2是跨度---[-1  1  3]!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+arr = np.array([1, 2, 3, 4, 5])
+float_arr = arr.astype(np.float64)       # 将int64的数组重新转成float64的新数组
+                                         # astype输出一个新的数组
+
+
+////////////// ndarray数组的运算 //////////////
+
+大小相等的数组之间的任何算术运算都会将运算应用到元素级
+arr  = np.array([[1., 2., 3.], [4., 5., 6.]])     # 原始数组，注意是float64
+arr2 = np.array([[0., 4., 1.], [7., 2., 12.]])
+arr3 = np.arange(32).reshape((8, 4))              # 将0-31的数字分布到8*4的数组里去
+
+arr * arr      # 1,4,9,16,25,36
+arr - arr      # 0,0,0,0,0,0
+arr2 > arr     # False,True,False,True,False,True
+
+基本的索引和切片：
+一维数组：
+arr = np.arange(10)    # array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+arr[5]                 # 5
+arr[5:8]               # array([5, 6, 7])
+
+修改任意切片的值，会导致源数据的修改
+arr[5:8] = 12          # 将5-8的位置的元素值赋值了12
+arr                    # array([ 0,  1,  2,  3,  4, 12, 12, 12,  8,  9])，源数据也变成了12
+arr[5:8].copy()        # 这是不修改源数据的情况下，得到数据的副本
+
+多维数组：
+arr2d = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+arr2d[2]               # 取的是array([7, 8, 9])
+arr2d[0][2]            # 3
+arr2d[0, 2]            # 3，与上面的方法等价
+arr2d[:2, 1:]          # array([[2, 3],[5, 6]])   切片从外往里切
+arr2d[[0,1]]           # 注意两个[]，这里就是取第1,2行的数据，结果是array([[1, 2, 3],[4, 5, 6]])
+
+一些有具体条件的索引数组
+names = np.array(['Bob', 'Joe', 'Will', 'Bob', 'Will', 'Joe', 'Joe'])  # 含有7个数据的数组
+data = np.random.randn(7, 4)          # 正态分布一个7*4的二维数组
+data[names == 'Bob']                  # 与data[2]类似，但不是具体数值，变成了条件
+data[names == 'Bob', 3]               # 与data[0, 2]类似，在上面的基础上，多了一个切片操作
+mask = (names == 'Bob') | (names == 'Will')    # 设置多个条件 
+data[mask]                                     # 一并提交索引
+data[data < 0] = 0           # 将部分数值直接变成0，比较实用
+data[names != 'Joe'] = 7     # 将部分数值按条件变成7，比较实用
+
+arr = np.arange(15).reshape((3, 5))    # 定义一个3*5的数组
+arr.T                                  # 得到转置的5*3的数组 
+                                       # 常用于np.dot计算矩阵内积：np.dot(arr.T, arr)
+
+
+一元通用函数：
+arr = np.arange(10)
+np.sqrt(arr)              # 开根号，不能开根号的返回nan，不会报错
+np.exp(arr)               # 自然底数e的x次方
+np.abs(arr)               # 计算绝对值，对非复数值，可以用fabs()
+np.square(arr)            # 2平方
+np.rint(arr)              # 四舍五入到最近的整数
+
+arr = np.random.randn(7) * 5
+remainder, whole_part = np.modf(arr)    # 得到小数，整数部分的数组
+
+二元通用函数：
+
+np.maximum(x, y)          # 取x,y两个一元数组中元素级别最大的元素。
+np.add(x, y)              # x,y元素的相加
+np.subtract(x, y)         # x-y
+np.multiply(x, y)         # x*y
+
+
+
+////////////// 利用数组进行数据处理 //////////////
+
+
+np.meshgrid--------从n个坐标向量返回坐标矩阵
+
+x = np.arange(0, 4)
+y = np.arange(-1, 2)
+xs, ys = np.meshgrid(x, y)   # 生成2个二维矩阵，x为行，y为列
+                             # xs表示以x的数据为行，辅以y的列数
+                             # ys表示以y的数据为列，辅以x的行数
+print(x)    # 生成的是[0 1 2 3]数组
+print(y)    # 生成的是[-1 0 1]数组
+print(xs)   # 无论是xs还是ys，生成的矩阵都是3*4
+print(ys)   # 意义是x的0可以与y的-1,0,1挨个计算，接着是x的1...
+z =(xs ** 2 + ys ** 2)
+z           # 得出12种可能的情况，分别从x,y里取一个数字
+
+xs---[[0 1 2 3]      ys---[[-1 -1 -1 -1]        z---[[ 1  2  5 10]
+      [0 1 2 3]            [ 0  0  0  0]             [ 0  1  4  9]
+      [0 1 2 3]]           [ 1  1  1  1]]            [ 1  2  5 10]]
+
+
+np.where()--------where(condition, [x, y]),当condition为True时，返回x，否则返回 y。
+
+在x, y 为一维数组时，就相当于：[xv if c else yv for (c,xv,yv) in zip(condition,x,y)]，但是速度比这个快
+
+x = np.arange(9).reshape(3,3)    # 创建一个3×3的矩阵
+
+3个参数：
+z = np.where(x>4, 1, 0)    # 如果x>4，就写入1，否则就是0
+print(x)       # 0,1,2,3,4,5,6,7,8的矩阵
+print(z)       # 0,0,0,0,0,1,1,1,1的矩阵
+
+1个参数：
+z = np.where(x>4)    # 仅有条件，那么返回的是位置索引
+print(z)             # (array([1, 2, 2, 2], dtype=int64), array([2, 0, 1, 2], dtype=int64))
+print(x[1,2])        # 5
+print(x[2,0])        # 6
+print(x[2,1])        # 7
+print(x[2,2])        # 8
+
+
+统计学上的应用：
+
+arr = np.arange(12).reshape(3,4)   # 创建3*4的数组
+print(arr)              # 1是行，0是列
+print(np.mean(arr))     # 求平均数，快速写法arr.mean()
+print(np.mean(arr,1))   # 求每一行的平均数，返回数组，0则是每一列
+print(np.sum(arr))      # 求和
+print(np.sum(arr,0))    # 求每一列的和，快速写法arr.sum(axis=0)
+print(arr.cumsum())           # 累加函数[ 0,  1,  3,  6, 10, 15, 21, 28, 36, 45, 55, 66]
+print(arr.cumsum(axis=0))     # 每一列的累加，返回相应未读的数组
+print(np.cumsum(arr,1))       # 每一行的累加
+print(arr.max())        # 最大值
+print(np.argmin(arr))   # 最小值的检索
+print(np.cumprod(arr))  # 所有元素的累计积
+print(np.std(arr))      # 标准差
+print(np.var(arr))      # 方差
+print(arr.var(axis=0))  # 每一列的方差
+
+在上面这些方法中，布尔值会被强制转换为1（True）和0（False），故：
+
+arr = np.random.randn(100)
+print((arr > 0).sum())          # 求非0数据和
+
+bools = np.array([False, False, True, False])
+print(bools.any())              # 试数组中是否存在一个或多个True
+print(bools.all())              # 检查数组中所有值是否都是True
+
+
+排序：
+
+arr = np.random.randn(6)
+arr.sort()                  # 按从小到大的书序排列
+print(arr)                  # 会改变原数组
+
+arr = np.random.randn(5, 3)   # 多维数组
+arr.sort(0)                   # 0-列从小到大排序，1-行从小到大排序
+
+
+数据唯一化&集合：
+
+names = np.array(['Bob', 'Joe', 'Will', 'Bob', 'Will', 'Joe', 'Joe'])
+np.unique(names)       # 发现这组数据里面有3个人名：['Bob', 'Joe', 'Will']
+
+ints = np.array([3, 3, 3, 2, 2, 1, 1, 4, 4])
+np.unique(ints)        # 同理
+
+unique(x)              # 计算x中的唯一元素，并返回有序结果
+intersect1d(x,y)       # 计算x和y中的公共元素，并返回有序结果
+union1d(x,y)           # 计算x和y的并集，并返回有序结果
+in1d(x,y)              # 得到一个表示"x的元素是否包含于y"的布尔型数组
+setdiff1d(x,y)         # 集合的差，即元素在x中且不在y中
+setxor1d(x,y)          # 集合的对称差，即存在于一个数组中单不同时存在于两个数组中的元素
+
+
+矩阵基础：
+
+2个矩阵相乘的意义：
+
+肉每斤20元，蔬菜每斤5元        (20, 5) * ( 2 )  = 20 * 2 + 5 * 1 = 45    
+买2斤肉，1斤蔬菜                         ( 1 )
+
+肉每斤20元，蔬菜每斤5元        (20, 5) *（ 2，1） = （45, 40）    代表着2种可能性
+买2斤肉，1斤蔬菜                        （ 1，4）
+也可能买1斤肉，4斤蔬菜
+
+肉每斤20元，蔬菜每斤5元       （20,  5） * （ 2，1） = （45, 40） 代表着4种可能性
+另一个菜场肉15元，蔬菜10元    （15，10）   （ 1，4）   （40, 55）
+买2斤肉，1斤蔬菜                        
+也可能买1斤肉，4斤蔬菜
+
+首先要满足a的行数等于b的列数
+计算方式：a第一行分别于b的每一列做一个积和计算，然后分别写入结果的第一行
+          再依次计算a的每一行
+一个二维数组跟一个大小合适的一维数组的矩阵点积运算之后将会得到一个一维数组
+
+x = np.array([[1., 2., 3.], [4., 5., 6.]])
+y = np.array([[6., 23.], [-1, 7], [8, 9]])
+x.dot(y)                                    # 进行矩阵乘法
+np.dot(x, y)                                # 与上面等价
+ 
+
+
+
+
+
+
+
+
+
+
