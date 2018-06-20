@@ -1,0 +1,357 @@
+﻿
+约定的形式：
+import pandas as pd     
+from pandas import Series, DataFrame
+
+
+☆☆☆☆☆☆☆ 数据结构-Series，DataFrame ☆☆☆☆☆☆☆
+ 
+///////// Series /////////
+
+Series类似于一维数组，左边标签右边值
+
+obj = pd.Series([4, 7, -5, 3])     
+print(obj)
+
+0    4            ---基本形式，索引 + 值
+1    7
+2   -5
+3    3
+dtype: int64      ---类型
+
+print(obj.values)    # 得到值，类型是numpy.ndarray，---[ 4  7 -5  3]
+print(obj.index)     # 得到索引，类型是RangeIndex对象，---RangeIndex(start=0, stop=4, step=1)
+
+obj2 = pd.Series([4, 7, -5, 3], index=['d', 'b', 'a', 'c'])  # 自定义数值与索引
+print(obj2['a'])        # 得到索引'a'的值，---5
+obj2['d'] = 6           # 修改索引'd'的值为6
+obj2[['c', 'a', 'd']]   # 得到Series中的一组值，返回依旧是Series
+
+print(obj2[obj2 > 0])   # 返回所有大于0的值
+obj2 = obj2 * 2         # 对所有值进行计算
+obj2 = np.exp(obj2)     # 利用np里面的函数进行计算
+'e' in obj2             # 检查索引'e'是否在obj2里面
+
+sdata = {'Ohio': 35000, 'Texas': 71000, 'Oregon': 16000, 'Utah': 5000}
+obj3 = pd.Series(sdata)    # 可以直接将Python字典创建Series，键值对成了索引值对
+
+states = ['California', 'Ohio', 'Oregon', 'Texas']
+obj4 = pd.Series(sdata, index=states)             # 索引按照states，值从sdata里找，找不到就是NaN
+obj4.index = ['Bob', 'Steve', 'Jeff', 'Ryan']     # 修改索引的名字，必须与原索引数量一致
+
+pd.isnull(obj4)         # 检测缺失数据，返回的是Series
+obj4.isnull()           # 与上面的等价
+
+obj3 + obj4             # 自动整合所有索引，值相加
+
+obj4.name = 'value'            # 设置Series的值的名字
+obj4.index.name = 'myindex'    # 设置Series的索引的名字
+print(obj4)
+
+
+///////// DataFrame /////////
+
+DataFrame：表格型的数据结构，含有一组有序的列
+   pop   state  year
+
+0  1.5    Ohio  2000
+
+1  1.7    Ohio  2001
+
+2  3.6    Ohio  2002
+
+3  2.4  Nevada  2001
+
+ 
+data = {'state': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada', 'Nevada'],
+        
+         'year': [2000, 2001, 2002, 2001, 2002, 2003],
+        
+          'pop': [1.5, 1.7, 3.6, 2.4, 2.9, 3.2]}
+frame = pd.DataFrame(data)      # 通过3个等长列表或NumPy数组创建DataFrame
+
+pd.DataFrame(data, columns=['year', 'state', 'pop'])   # 按指定的顺序进行排列
+
+# 列按照指定的顺序排，行的所以按指定的名字顺序排，若有缺省会产生NaN
+frame2 = pd.DataFrame(data, columns=['year', 'state', 'pop', 'debt'],
+                              index=['one', 'two', 'three', 'four','five', 'six'])
+frame2.columns    # 得到列的名称
+frame2['state']   # 得到其中的一个列，返回是一个Series
+frame2.year       # 得到其中的一个列，返回是一个Series
+frame2.loc['three']      # 得到其中的一个行，返回是一个Series
+
+frame2['debt'] = 16.5               # 为NaN的debt那一列，全体赋值16.5
+frame2['debt'] = np.arange(6)       # 为NaN的debt那一列，赋值0-5的数据，注意长度要匹配
+
+val = pd.Series([-1.2, -1.5, -1.7], index=['two', 'four', 'five'])
+frame2['debt'] = val       # 赋值一个Series到空的debt下，会精确匹配索引与值，不符合的保持原样
+
+frame2['eastern'] = frame2.state == 'Ohio'     # 添加了一列，并且指定了条件，内容用True,False填充
+del frame2['eastern']                          # 删除列
+
+Series的copy方法可指定复制列。
+
+嵌套字典：
+pop = {'Nevada': {2001: 2.4, 2002: 2.9},
+         'Ohio': {2000: 1.5, 2001: 1.7, 2002: 3.6}}
+frame3 = pd.DataFrame(pop)       # 也能创建一个DataFrame 
+frame3.T                         # 转置（行列交换，3*4变成4*3）
+frame3.index.name = 'year'       # DataFrame也有自己的index属性
+frame3.columns.name = 'state'    # DataFrame也有自己的name属性
+frame3.values                    # 得到值，以二维ndarray的形式返回DataFrame中的数据
+'Ohio' in frame3.columns         # 检查是否含有列'Ohio'
+2003 in frame3.index             # 检查是否含有行（索引）2003
+
+
+
+☆☆☆☆☆☆☆ 基本功能 ☆☆☆☆☆☆☆
+
+///////// 重新索引-reindex /////////
+
+obj = pd.Series([4.5, 7.2, -5.3, 3.6], index=['d', 'b', 'a', 'c'])
+
+obj2 = obj.reindex(['a', 'b', 'c', 'd', 'e'])   # 根据新索引进行重排
+                                                # 若某个索引值当前不存在，就是NaN
+
+如果是有序数据，重新索引时可能需要做一些插值处理，填补空缺的内容
+使用ffill可以实现前向值填充：
+obj3.reindex(range(6), method='ffill')    # 所以是0-5，内容前向值填充
+frame.reindex(['a', 'b', 'c', 'd'])       # 重新设定索引，缺省用NaN
+frame.reindex(columns=mystates)           # 重新设定数据列，缺省用NaN
+frame.reindex(columns=df2.columns, fill_value=0)    # 将缺省值设定为0
+
+
+///////// 丢弃指定轴上的项 ///////// 
+
+Series：
+obj = pd.Series(np.arange(5.), index=['a', 'b', 'c', 'd', 'e'])
+
+new_obj = obj.drop('c')      # 丢弃索引c的那一行，丢弃多个写法：obj.drop(['d', 'c'])
+       
+DataFrame：
+data = pd.DataFrame(np.arange(16).reshape((4, 4)),
+                      index=['Ohio', 'Colorado', 'Utah', 'New York'],
+                      columns=['one', 'two', 'three', 'four'])
+data.drop(['Colorado', 'Ohio'])     # 删除索引行
+data.drop(['Colorado', 'Ohio'], inplace=True)         # 删除索引行，并且永久的改变对象
+data.drop('two', axis=1)            # 删除某一列
+data.drop(['two', 'four'], axis='columns')   # 删除多个列
+
+
+
+///////// 索引、选取和过滤 /////////
+
+Series索引：
+
+obj = pd.Series(np.arange(4.), index=['a', 'b', 'c', 'd'])
+
+obj['b']           # 得到索引'b'的值---1.0
+obj[1]             # 得到第二个索引所对应的值---1.0
+obj[2:4]           # 切片索引，返回的是Series
+obj[['b', 'a', 'd']]      # 多个索引值，返回也是Series
+obj[[1, 3]]               # 按顺序找，返回也是Series
+obj[obj < 2]              # 条件找，返回也是Series
+obj['b':'c'] = 5          # 对切片进行赋值（标签的切片是含末尾值的）
+
+
+DataFrame：（用一个值或序列对DataFrame进行索引其实就是获取一个或多个列）
+
+data = pd.DataFrame(np.arange(16).reshape((4, 4)),
+                         index=['Ohio', 'Colorado', 'Utah', 'New York'],
+                       columns=['one', 'two', 'three', 'four'])
+data['two']                   # 得到'two'对应的那一列，返回对象是Series
+data[['three', 'one']]        # 得到对应2列，返回的是DataFrame
+data[:2]                      # 切片是对索引值的切片，返回对象是DataFrame（哪怕就一行）
+data[data['three'] > 5]       # 条件搜找，返回的是符合条件的每一行
+data < 5                      # 得到新DataFrame，内容全是T与F
+data[data < 5] = 0            # 得到新DataFrame，符合条件的数据全是0
+
+data.loc['Colorado', ['two', 'three']]    # 通过标签选择一行和多列，返回是Series，所以是一行
+data.loc[:'Utah', 'two']                  # 切片选择多行与1列，返回是Series
+data.iloc[2, [3, 0, 1]]                   # 行序号，列序号，这里返回Series
+data.iloc[[1, 2], [3, 0, 1]]              # 多个行，多个列，这里返回DataFrame
+
+
+
+///////// 算术运算 ///////// 
+
+Series：
+
+s1 = pd.Series([7.3, -2.5, 3.4, 1.5], index=['a', 'c', 'd', 'e'])
+s2 = pd.Series([-2.1, 3.6, -1.5, 4, 3.1], index=['a', 'c', 'e', 'f', 'g'])
+s1 + s2       # 'a'对'a'，'b'对'b'，若对不上，该处就是NaN
+              # 返回是新的Series对象，包含所有s1，s2的索引
+
+DataFrame：
+
+df1 = pd.DataFrame(np.arange(9.).reshape((3, 3)), 
+                   columns=list('bcd'), index=['Ohio', 'Texas', 'Colorado'])
+df2 = pd.DataFrame(np.arange(12.).reshape((4, 3)), 
+                   columns=list('bde'), index=['Utah', 'Ohio', 'Texas', 'Oregon'])
+df1 + df2     # 相加返回新的DataFrame，其索引和列为原来那两个DataFrame的并集
+              # 若对不上，该处就是缺省值NaN
+              # 如果都没有共用的列或行标签，那么结果都会是空
+
+若是不想产生NaN值，就需要用算术方法，添加参数
+
+df1.add(df2, fill_value=0)      # 同样是相加，这里每个DataFrame找不到的缺省值是0
+
+add         加法
+sub         减法
+div         除法
+floordiv    底除
+mul         乘法
+pow         指数
+
+
+DataFrame和Series之间的运算：
+
+1.二维数组与他的某行之间的差
+
+arr = np.arange(12.).reshape((3, 4))     # 创建一个二维数组
+arr[0]                                   # 取他的第一行数据
+arr - arr[0]                             # 相减操作，每一行都会执行这个操作---广播
+
+
+2.衍生到DataFrame和Series
+
+frame = pd.DataFrame(np.arange(12.).reshape((4, 3)),    # 创建一个DataFrame
+                          columns=list('bde'),
+                          index=['Utah', 'Ohio', 'Texas', 'Oregon'])
+series = frame.iloc[0]          # 取他的第一行series
+frame - series                  # 相减操作，也是每一行都会执行---广播
+
+series2 = pd.Series(range(3), index=['b', 'e', 'f'])    # 新定义一个Series
+frame + series2                 # 相加操作，虽然维数对应不上，但是也是每一行列的相加，对应索引
+                                # 对应不上的就是NaN
+
+series3 = frame['d']                # 取的是列
+frame.sub(series3, axis='index')    # 在列上进行广播，必须使用算术运算方法
+
+
+
+///////// 函数应用和映射 /////////
+
+对frame全体数据进行操作：
+
+frame = pd.DataFrame(np.random.randn(4, 3), columns=list('bde'),
+                     index=['Utah', 'Ohio', 'Texas', 'Oregon'])
+np.abs(frame)    # 为frame里的数据绝对值化，利用np的函数
+
+format = lambda x: '%.2f' % x     # 精度小数点后2位
+frame.applymap(format)            # applymap()，里面传参是函数
+
+
+对各列或各行所形成的一维数组上进行操作：
+
+f = lambda x: x.max()-x.min()    # 这里是计算最大值-最小值的结果
+frame.apply(f)                   # apply()默认是对列里面的数据进行操作,结果是一个Series
+frame.apply(f, axis='columns')   # 将函数应用到每一行
+
+
+对各列或各行进行操作：
+
+def f(x):              # 虽然是pd.Series，但返回是DataFrame，从源数据的每一列取
+    return pd.Series([x.min(), x.max()], index=['min', 'max'])
+a = frame.apply(f)     # apply()里面是一个函数
+
+
+
+///////// 排序和排名 /////////
+
+Series：
+
+obj = pd.Series(range(4), index=['d', 'a', 'b', 'c'])
+obj.sort_index()    # 对索引的排列
+obj.sort_values()   # 对值的排列，当然这里不起作用，因为本来就是1-3
+                    # 若有缺省值NaN，自动会排到末尾
+
+
+DataFrame：
+
+frame = pd.DataFrame(np.arange(8).reshape((2, 4)),
+                        index=['three', 'one'],
+                        columns=['d', 'a', 'b', 'c'])
+frame.sort_index()         # 对索引的按次序排列
+frame.sort_index(axis=1)   # 对所有列的按次序排列
+frame.sort_index(axis=1, ascending=False)    # ascending=False---是否升序排列
+
+
+frame = pd.DataFrame({'b': [4, 7, -3, 2], 'a': [0, 1, 0, 1]})
+frame.sort_values(by='b')     # 按'b'列里面值的升序顺序进行排列
+frame.sort_values(by=['a', 'b'])   # a的优先度最高，平级的情况下在考虑b
+
+
+排名：
+
+obj = pd.Series([7, -5, 7, 4, 2, 0, 4])
+obj.rank()    # 对内容进行正序排名，例如-5最小，那么排名就是1
+              # 因为有2个7，所以没有第6第7，同是6.5，但是占了第6第7的坑，下一位就是8
+obj.rank(method='first')    # 没有6.5了，按原数据，谁在前面就是6，后面就是7
+obj.rank(ascending=False, method='max')   # 反序，
+
+
+
+///////// 汇总和计算描述统计 /////////
+
+计算：
+df = pd.DataFrame([[1.4, np.nan], [7.1, -4.5],
+                   [np.nan, np.nan], [0.75, -1.3]],
+                   index=['a', 'b', 'c', 'd'],
+                   columns=['one', 'two'])
+df.sum()          # 计算每一列的总和，忽略NaN值，都是NaN的话结果才是NaN
+df.sum(axis=1)    # 计算每一行的总和
+df.sum(axis='columns', skipna=False)      # # 计算每一行的总和，有NaN就是NaN
+
+df.idxmax()       # 每一列达到最大值的索引
+df.cumsum()       # 累加
+df.describe()     # 返回统计用的参数，数值型与非数值型返回结果不大一样
+
+方法：            说明：
+count             非NA值的数量
+describe          针对Series或各DataFrame列计算汇总统计
+min、max          计算最小值和最大值
+argmin、argmax    计算能获取到最小值和最大值的索引位置（整数）
+idxmin、idxmax    计算能获取到最小值和最大值的索引值，注意不是位置 
+quantile          计算样本的分位数（0到1）
+sum               值的总和
+mean              值的平均数
+median            值的算数中位数（50%分位数）
+mad               根据平均值计算平均绝对离差
+var               方差
+std               标准差
+skew              样本值的偏度（三阶矩）
+kurt              样本值的峰度（四阶矩）
+cumsum            累计和
+cummin、cummax    累计最大值与累计最小值
+cumprod           样本值的累计积 
+diff              计算一阶差分（对时间序列很有用）
+pct_change        计算百分数变化
+
+
+obj = pd.Series(['c', 'a', 'd', 'a', 'a', 'b', 'b', 'c', 'c'])
+uniques = obj.unique()      # 得到obj的唯一值
+obj.value_counts()          # 得到obj每个参数的频率
+obj.isin(['b', 'c'])        # 是否含有，返回True or False的Series
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

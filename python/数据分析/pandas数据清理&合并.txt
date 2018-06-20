@@ -1,0 +1,360 @@
+﻿import numpy as np
+import pandas as pd 
+from numpy import nan as NA    约定是将np.nan变成NA
+
+axis=0 行 axis=1 列 
+
+
+☆☆☆☆☆☆☆☆☆☆ 处理缺失数据 ☆☆☆☆☆☆☆☆☆☆
+
+string_data = pd.Series(['aardvark', None, np.nan, 'avocado'])      # Series
+data = pd.DataFrame([[1., 6.5, 3.], [1., NA, NA],                   # DataFrame
+                     [NA, NA, NA], [NA, 6.5, 3.]])
+
+判断是否有缺失数据：
+
+string_data.isnull()        # np.nan和None都是缺失数据，注意返回也是Series
+string_data.notnull()       # isnull()的否定式
+ 
+data.isnull()               # 注意返回也是DataFrame，内容是True与False
+
+
+丢弃缺失数据：
+
+string_data.dropna()        # 从Series中丢弃缺失数据
+
+data.dropna()               # 只要含有NA，就丢弃它所在的那一行
+data.dropna(how='all')      # 仅丢弃全为NA的那些行
+data.dropna(how='all', axis=1)       # 仅丢弃全为NA的那些列
+
+
+填充缺失数据：
+
+string_data.fillna('0')     # 将缺失数据用'0'来代替
+
+data.fillna('0')            # 将缺失数据用'0'来代替
+data.fillna(0, inplace=True)        # 对源数据进行更改的操作
+data.fillna({'bb': 1, 'cc': 0})     # 对'bb'那一列的NA值替换为1，'c'替换为0，其他NA不变
+data.fillna('0',limit=2)            # 前（列数 * 2）的NA会被替换
+
+
+
+☆☆☆☆☆☆☆☆☆☆ 数据的操作 ☆☆☆☆☆☆☆☆☆☆
+
+////////// 移除重复数据 //////////
+
+发现重复行：
+
+data = pd.DataFrame({'k1': ['one', 'two'] * 3 + ['two'],
+                     'k2': [1, 1, 2, 3, 3, 4, 4]})         # 制造一个第6第7行数据重复的DataFrame
+
+data.duplicated()          # 返回一个布尔型Series，表示各行是否重复行
+data.drop_duplicates()     # 会丢弃重复行
+data.drop_duplicates(['k1'])      # 根据'k1'这个列的数据，有重复就丢弃
+
+duplicated和drop_duplicates默认保留的是第一个出现的值组合，传入keep='last'则保留最后一个
+如：data.drop_duplicates(['k1'], keep='last')
+
+
+////////// 新增一组数据 //////////
+
+data = pd.DataFrame({'food': ['bacon', 'pulled pork', 'bacon',        # 源数据，食物&重量
+                              'Pastrami', 'corned beef', 'Bacon',
+                              'pastrami', 'honey ham', 'nova lox'],
+                     'ounces': [4, 3, 12, 6, 7.5, 8, 3, 5, 6]})
+meat_to_animal = {             
+  'bacon': 'pig',              # 新数据，食物与对应的来源
+  'pulled pork': 'pig',
+  'pastrami': 'cow',
+  'corned beef': 'cow',
+  'honey ham': 'pig',
+  'nova lox': 'salmon'
+}
+
+需要添加一列新数据，利用map方法，使DataFrame接受一个函数或含有映射关系的字典型对象
+
+data['animal'] = data['food'].str.lower().map(meat_to_animal)
+
+data['animal']                 # 新建列，列名animal
+data['food'].str.lower()       # 对应关系用的是data['food']这一列，但是需要小写化
+.map(meat_to_animal)           # 添加一个含有映射关系的字典型对象
+
+data['food'].map(lambda x: meat_to_animal[x.lower()])    # 简单的写法
+
+
+////////// 替换部分数据 //////////
+
+替换内容数据：
+
+data = pd.Series([1., -999., 2., -999., -1000., 3.])
+
+data.replace(-999, np.nan)                   # 将-999替换成NA
+data.replace([-999, -1000], np.nan)          # 将多组数据一次性替换成NA
+data.replace([-999, -1000], [np.nan, 0])     # 将多组数据按对应关系替换   
+data.replace({-999: np.nan, -1000: 0})       # 使用字典进行替换（找不到就不会替换）
+
+
+替换索引，标签：
+
+data = pd.DataFrame(np.arange(12).reshape((3, 4)),
+                       index=['Ohio', 'Colorado', 'New York'],
+                     columns=['one', 'two', 'three', 'four'])
+
+transform = lambda x: x[:4].upper()           # 设置一个函数，前4个返回大写
+data.index = data.index.map(transform)        # data的index，也就是索引，进行替换数据
+
+如果是想要创建数据集的转换版（而不是修改原始数据），需要用到rename
+
+a = data.rename(index=str.title, columns=str.upper)    # 索引首字母大写，标签大写化
+a = data.rename(index={'ohio': 'INDIANA'},             # 替换原有的索引ohio为INDIANA
+              columns={'three': 'peekaboo'})           # 替换原有的标签three为peekaboo
+                                                       # 同样，用inplace=True会修改源数据
+
+
+////////// 对连续数据的拆分分组 //////////
+
+ages = [20, 22, 25, 27, 21, 23, 37, 31, 61, 45, 41, 32]      # 源数据
+bins = [18, 25, 35, 60, 100]                                 # 拆分规则，18-25一组，如此
+cats = pd.cut(ages, bins)                                    # 进行拆分，返回的是一个Categorical对象
+
+Categorical对象：
+[(18, 25], (18, 25], (18, 25], (25, 35], (18, 25], ..., (25, 35], (60, 100], (35, 60], (35, 60], (25, 35]]
+Length: 12
+Categories (4, interval[int64]): [(18, 25] < (25, 35] < (35, 60] < (60, 100]]
+
+第一个(18, 25]表示20处在18, 25，也就是第0组之间
+12表示数据量
+分成了4组
+
+cats.codes        # 对数据所在组的分类---array([0, 0, 0, 1, 0, 0, 2, 1, 3, 2, 2, 1], dtype=int8)
+cats.categories   # IntervalIndex([(18, 25], (25, 35], (35, 60], (60, 100]] 
+                                  closed='right',dtype='interval[int64]')
+                  # 对分组的说明，区间，闭合等
+pd.value_counts(cats)       # 对每一组数据量的统计
+                            # (18, 25]     5
+                            # (35, 60]     3
+                            # (25, 35]     3
+                            # (60, 100]    1
+
+pd.cut(ages, [18, 26, 36, 61, 100], right=False)         # right=False修改闭合区间，变成了[18, 26)
+
+group_names = ['Youth', 'YoungAdult', 'MiddleAged', 'Senior']
+pd.cut(ages, bins, labels=group_names)                   # 设置自己的面元名称，(18, 25]变成了Youth
+
+
+自动分割等长面元：
+
+data = np.random.rand(20)
+pd.cut(data, 4, precision=2)        # 自动分成4组，区间是最小值到最大值
+                                    # precision=2，限定小数只有两位
+
+自动分割样本分位数：
+
+data = np.random.randn(1000)
+cats = pd.qcut(data, 4)             # 按25%的百分位数，归类数据
+pd.value_counts(cats)               # (0.689, 3.307]      250       (0.689, 3.307]这类长度的数据占了四分之一
+                                    # (0.0113, 0.689]     250
+                                    # (-0.588, 0.0113]    250
+                                    # (-3.028, -0.588]    250
+pd.qcut(data, [0, 0.1, 0.5, 0.9, 1.])      # 自定义百分数区间
+
+
+////////// 检测和过滤异常值 //////////
+
+data = pd.DataFrame(np.random.randn(1000, 4))        # 含有1000个数据的正态分布
+
+找出异常值
+data.describe()              # 最大小值，4分位数，平均值，标准差等描述
+col = data[2]                # 获得第三列的数据，是一个Series
+col[np.abs(col) > 3]         # 得到绝对值大于3的部分，也就是期望的异常值
+data[(np.abs(data) > 3).any(1)]       # 得到全部含有“超过3或－3的值”的行 
+
+修改异常值：
+data[np.abs(data) > 3] = np.sign(data) * 3    # 对绝对值大于3的参数，修改
+                                              # np.sign(data)可以生成1和-1
+
+
+////////// 数据的随机采样 && 计算列的指标 //////////
+
+df = pd.DataFrame(np.arange(5 * 4).reshape((5, 4)))       # 定义5行4列的源数据
+df.sample(n=3)                  # 随机取3行                    
+df.sample(n=10, replace=True)   # 随机取10行，并且允许重复，所以n都大于源数据的5行了
+
+df = pd.DataFrame({'key': ['b', 'b', 'a', 'c', 'a', 'b'],    # 每一行对应一个key值
+                 'data1': range(6)})                         # key值一共有3个
+pd.get_dummies(df['key'])             # 得到新的k列的矩阵，以key为准
+                                      # 以a,b,c为列名的统计，可以看到在每一行出现的次数
+
+dummies = pd.get_dummies(df['key'], prefix='key')    # 列明成了key_a，key_b等
+df_with_dummy = df[['data1']].join(dummies)          # data1，key_a，key_b。。。。的数据
+                                                     # 就是一整合了源数据
+
+结合诸如cut之类的离散化函数，也可以计算列的指标
+values = np.random.rand(10)
+bins = [0, 0.2, 0.4, 0.6, 0.8, 1]
+pd.get_dummies(pd.cut(values, bins))     # 将10个随机数分组到bins里面
+
+
+
+
+☆☆☆☆☆☆☆☆☆☆ 对多个索引的数据的操作 ☆☆☆☆☆☆☆☆☆☆
+
+正常一个Series或者DataFrame都只有一个索引，但是也能设置多个（MultiIndex）
+
+Series：
+data = pd.Series(np.random.randn(9),
+            index=[['a', 'a', 'a', 'b', 'b', 'c', 'c', 'd', 'd'],         # 第一组索引
+                   [1, 2, 3, 1, 3, 1, 2, 2, 3]])                          # 第二组索引
+
+type(data.index)        # pandas.core.indexes.multi.MultiIndex，可以看出属于MultiIndex多层索引
+data['b']               # 选取标签为b的内容，反回哪怕只有一个，也是Series
+data['a':'c']           # 返回标签从a到c，若是d到c则是空
+data.loc[['b', 'd']]    # 返回标签b和d，不是到是和
+data.loc[:, 2]          # 返回a-2，c-2，d-2，b标签里面没有2标签，所以这里没有
+
+data.unstack()          # 将这个多索引的Series变成了DataFrame，哪怕3组索引也能变
+data.unstack().stack()      # 转变成DataFrame在还原
+
+DataFrame：
+frame = pd.DataFrame(np.arange(12).reshape((4, 3)),           # 2个索引2个列明
+                 index=[['a', 'a', 'b', 'b'], 
+                        [1, 2, 1, 2]],
+               columns=[['Ohio', 'Ohio', 'Colorado'],
+                        ['Green', 'Red', 'Green']])
+
+frame.index.names = ['key1', 'key2']          # 为索引1，索引2起名key1，key2
+frame.columns.names = ['state', 'color']      # 为列1，列2起名state，color
+frame.swaplevel('key1', 'key2')               # 界面上key2与key1互换了个位置（数据不会发生变化）
+frame.swaplevel(0, 1).sort_index(level=0)     # 互换，然后排序
+
+frame.sum(level='key2')                 # 合并key2下标签名相同的那些行，求和
+frame.sum(level='color', axis=1)        # 合并列color下有相同名字的列，求和
+
+MultiIndex.from_arrays([['Ohio', 'Ohio', 'Colorado'], ['Green', 'Red', 'Green']],
+                       names=['state', 'color'])             # 单独创建MultiIndex然后复用
+
+frame['Ohio']          # 选取列Ohio的内容
+
+
+////////// 将DataFrame的行，索引互换 //////////
+
+frame = pd.DataFrame({'a': range(7),                # 列名a的数据
+                  'b': range(7, 0, -1),             # 列名b的数据
+                  'c': ['one', 'one', 'one', 'two', 'two', 'two', 'two'],   # 列名c的数据
+                  'd': [0, 1, 2, 0, 1, 2, 3]})      # 列名d的数据
+
+frame2 = frame.set_index(['c', 'd'])         # 将c,d列变成索引
+frame.set_index(['c', 'd'], drop=False)      # 将c,d列变成索引，同时保留c,d列
+frame2.reset_index()                         # set_index的反操作，索引还原成列
+
+
+
+☆☆☆☆☆☆☆☆☆☆ 合并数据集merge(join) ☆☆☆☆☆☆☆☆☆☆
+
+////////// 一对多 //////////
+一边指定的列里面标签不重复，另一边可以重复
+
+df1 = pd.DataFrame({'key': ['b', 'b', 'a', 'c', 'a', 'a', 'b'],
+                     'data1': range(7)})
+df2 = pd.DataFrame({'key': ['a', 'b', 'd'],
+                     'data2': range(3)})
+
+pd.merge(df1, df2, on='key')       # 指定列明为key作为键，合并2个DataFrame
+                                   # 新的数据集里没有了key=c这一列，因为默认merge结果中的键是交集
+pd.merge(df1, df2, how='outer')    # 并集
+                                   # 一列有值一列没有，会填充 NaN
+
+pd.merge(df3, df4, left_on='lkey', right_on='rkey')     # 为df3指定lkey这一列作为键，为df4指定rkey这一列作为键
+                                                        # 顺序不能变
+
+
+////////// 多对多 //////////
+2边指定的列里面标签都重复，假设A列有3个标签x，B列有2个标签x，那么合并结果就会有3*2=6个标签x
+
+
+left = pd.DataFrame({'key1': ['foo', 'foo', 'bar'],
+                     'key2': ['one', 'two', 'one'],
+                     'lval': [1, 2, 3]})
+right = pd.DataFrame({'key1': ['foo', 'foo', 'bar', 'bar'],
+                      'key2': ['one', 'one', 'one', 'two'],
+                      'rval': [4, 5, 6, 7]})
+pd.merge(left, right, on='key1')                # 按2边的key1列作为键合并
+                                                # left里面foo有2个，right有2个，结果就是4个
+                                                # 2个'key2'灰重命名成key2_x，key2_y
+# 对重复列名的处理，变成了key2_left，key2_right
+pd.merge(left, right, on='key1', suffixes=('_left', '_right'))
+
+
+对多个键进行合并，需要传入一个由列名组成的列表
+left = pd.DataFrame({'key1': ['foo', 'foo', 'bar'],
+                     'key2': ['one', 'two', 'one'],
+                     'lval': [1, 2, 3]})
+right = pd.DataFrame({'key1': ['foo', 'foo', 'bar', 'bar'],
+                      'key2': ['one', 'one', 'one', 'two'],
+                      'rval': [4, 5, 6, 7]})
+pd.merge(left, right, on=['key1', 'key2'], how='outer')  # 2个DataFrame都含有key1，key2列
+
+
+merge函数的参数：
+
+left         参与合并的左侧DataFrame
+right        参与合并的右侧DataFrame
+how：
+    inner        使用两个表都有的键（交集）（默认） 
+    left         使用左表中所有的键
+    right        使用右表中所有的键
+    outer        使用两个表中所有的键（并集）
+on           用于连接的列名，必须存在于2个DataFrame中
+             若未指定，则取2个列名的交集作为连接键
+left_on      左侧DataFrame中用作连接键的列
+right_on     右侧DataFrame中用作连接键的列
+left_index   将左侧的行索引用作起连接键，用True
+right_index  将右侧的行索引用作起连接键
+suffixes     重命名2个相同列名的数据，默认是_x,_y
+
+
+////////// 索引上的合并 //////////
+
+left1 = pd.DataFrame({'key': ['a', 'b', 'a', 'a', 'b', 'c'],
+                    'value': range(6)})
+right1 = pd.DataFrame({'group_val': [3.5, 7]}, index=['a', 'b'])
+pd.merge(left1, right1, left_on='key', right_index=True)    # 将key列，与right1索引列作为连接键
+                                                            # 这里是取交集
+pd.merge(left1, right1, left_on='key', right_index=True, how='outer')     # 取并集
+
+
+如果是取DataFrame1的2列，与DataFrame2的2列索引列，那么合并结果需要乘法计算
+pd.merge(lefth, righth, left_on=['key1', 'key2'], right_index=True)
+
+合并双方的索引
+pd.merge(left2, right2, how='outer', left_index=True, right_index=True)
+
+
+////////// 索引上的合并join //////////
+
+left1.join(right1, how='outer')   # left1，right1索引的合并操作
+                                  # 默认使用的是左连接，保留左边表的行索引
+left1.join(right1, on='key')      # 也支持列的合并，需要指出合并键值
+left2.join([right2, another])     # 3个DataFrame的索引的合并操作
+left2.join([right2, another], how='outer')    # 3个DataFrame的索引的合并操作---并集
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

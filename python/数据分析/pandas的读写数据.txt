@@ -1,0 +1,212 @@
+﻿import numpy as np
+import pandas as pd 
+
+
+☆☆☆☆☆☆☆☆☆☆☆ 读写文本格式的数据 ☆☆☆☆☆☆☆☆☆☆☆
+
+函数              说明
+read_csv          从文件、URL、文件型对象中加载带分隔符的数据。默认分隔符为逗号
+read_table        从文件、URL、文件型对象中加载带分隔符的数据。默认分隔符为制表符('\t')
+read_excel        从Ecxel中读取表格数据 
+read_json         读取JSON字符串中的数据
+
+a,b,c,d,message              -----> 标题行    
+1,2,3,4,hello 
+5,6,7,8,world                    
+9,10,11,12,foo               -----> 将该内容的txt文件重命名成csv就行了
+
+df = pd.read_csv(r'C:\Users\zl\Desktop\test.csv')        # 读取csv文件，并转成DataFrame，需要分隔符是逗号
+pd.read_table(r'C:\Users\zl\Desktop\test.csv', sep=',')  # 使用read_table，并指定分隔符
+
+没有标题行：
+pd.read_csv(r'C:\Users\zl\Desktop\test.csv', header=None)   # 使用默认的01234代替标题行
+pd.read_csv(r'C:\Users\zl\Desktop\test.csv', 
+                   names=['a', 'b', 'c', 'd', 'message'])   # 自定义标题行
+
+names = ['a', 'b', 'c', 'd', 'message']
+pd.read_csv(r'C:\Users\zl\Desktop\test.csv', 
+                   names=names, index_col='message')        # 自定义标题行，并制定message列作为索引列
+
+
+pd.read_table('examples/ex3.txt', sep='\s+')      # 以一个或多个空白格作为分隔符
+
+缺失数据：
+若数据中是NA及NULL（大写或小写），或者是,,空的形式，会自动补NaN
+pd.isnull(dataFrame)         # 可以使用该方法进行检查
+pd.read_csv(r'C:\Users\zl\Desktop\test.csv', na_values=['4'])   # 如出现4，也会变成NaN值
+
+逐块读取文本文件：
+pd.read_csv(r'C:\Users\zl\Desktop\test.csv', nrows=2)    # 读取前2行数据（不含标题，从1开始）
+chunker = pd.read_csv(r'C:\Users\zl\Desktop\test.csv', chunksize=2)    # 分割成2行2行的数据
+for piece in chunker:
+    print(piece)            # 会发现一次输出2行的信息
+chunker.get_chunk(4)        # 得到前4行的信息
+
+
+CSV文件的输出：
+
+data = pd.read_csv('examples/ex5.csv')    # 从一个csv文件得到数据（这里路径是随便写的哈）
+data.to_csv('examples/out.csv')           # 将data数据以逗号分割的形式输出到out.csv
+                                          # 文件不存在会自动创建
+data.to_csv(sys.stdout, sep='|')          # 将data数据以'|'分割的形式输出
+                                          # 这里sys.stdout仅仅是打印出文本结果，需要import sys
+data.to_csv(sys.stdout, na_rep='@@@')     # 将缺省符号替换成@@@
+data.to_csv(sys.stdout, index=False, header=False)       # 禁用行、列的标签
+data.to_csv(sys.stdout, index=False, columns=['a', 'b', 'c'])     # 仅输出特定的列
+
+Series也可以使用to_csv输出：
+
+dates = pd.date_range('1/1/2000', periods=7)   # 日期写法
+ts = pd.Series(np.arange(7), index=dates)
+ts.to_csv('examples/tseries.csv')              # 输出
+
+
+使用Python内置的csv模块可以对源数据做简单处理，再合成转成DataFrame
+
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆ JSON ☆☆☆☆☆☆☆☆☆☆☆
+
+obj = """
+{"name": "Wes",
+ "places_lived": ["United States", "Spain", "Germany"],
+ "pet": null
+}
+"""
+
+result = json.loads(obj)       # json加载数据
+asjson = json.dumps(result)    # 将加载的数据转化成String
+pd.DataFrame(result['siblings'], columns=['name', 'age'])     # 数据来自result['siblings']，行为name，age
+
+data = pd.read_json(r'C:\Users\zl\Desktop\test.json')    # 读取.json的文件
+data.to_json(r'C:\Users\zl\Desktop\test22.json')         # 输出成json的文件
+print(data.to_json())                                    # 输出成String
+
+
+
+
+☆☆☆☆☆☆☆☆☆☆☆ excel ☆☆☆☆☆☆☆☆☆☆☆
+
+# 读取信息，取Sheet1表格，使用默认0123代替标题行
+frame = pd.read_excel(r'C:\Users\zl\Desktop\11.xlsx', 'Sheet1', header=None)               
+
+# 导出数据
+frame.to_excel(r'C:\Users\zl\Desktop\22.xlsx')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

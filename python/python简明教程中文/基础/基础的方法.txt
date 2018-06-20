@@ -8,6 +8,22 @@ type(3.14)         # 查询类别
 <class 'float'>
 
 
+☆☆☆☆☆☆☆☆☆☆☆☆  基础字符串方法  ☆☆☆☆☆☆☆☆☆☆☆☆
+
+方法                         说明
+count                        返回在字符串中出现的次数（非重叠）
+endswith,startswith          是否以某个末尾或者前缀开头，返回True
+x.join(y)                    将x用作连接字符串序列y的分隔符     
+index                        就是indexof(xxx)，返回找到的第一个位置，找不到会引发ValueError
+find                         返回找到的第一个位置的第一个字符的位置，找不到返回-1
+rfind                        返回找到最后一个位置的第一个字符的位置，找不到返回-1
+replace                      替换
+strip,rstrip,lstrip          去除空白符，包括换行符
+split                        通过制定分隔符，将字符串分割
+lower,upper                  小写，大写化
+ljust,rjust                  用空格（或其他字符）填充字符串的空白侧 
+
+
 
 ☆☆☆☆☆☆☆☆☆☆☆☆  format函数  ☆☆☆☆☆☆☆☆☆☆☆☆
 
