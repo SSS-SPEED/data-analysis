@@ -1,0 +1,184 @@
+﻿
+matplotlib的通常引入约定：
+import matplotlib.pyplot as plt
+
+import numpy as np
+import pandas as pd 
+from numpy import nan as NA
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆ Figure和Subplot ☆☆☆☆☆☆☆☆☆☆☆☆
+ 
+Figure：     matplotlib的图像都位于Figure对象中，用plt.figure创建
+             fig = plt.figure()
+subplot：    无法通过空Figure绘图，需要有一个或多个subplot才行
+
+
+////////////// 基础 //////////////
+
+plt.rc('figure', figsize=(10, 10))     # 全局设置画布大小
+
+subplot的3个参数：
+ax1 = fig.add_subplot(3, 4, 9)    # 参数(3, 4, 9)表示将画布分成3行4列
+                                  # 9表示位置，从左到右，从上到下，所以改图会在左下角
+
+基本建图：
+fig = plt.figure()                # 创建Figure对象
+# plt.plot([1.5, 3.5, -2, 1.6])   # plt.plot是绘图，在最后一个subplot上绘图
+                                  # plot函数接受一组X和Y坐标，只有一组的话，默认X轴以0,1,2,3开始
+                                  # 没有subplot会自动创建一个（1,1,1），被后面的覆盖
+ax1 = fig.add_subplot(2, 2, 1)    # 空图，左上角
+ax2 = fig.add_subplot(2, 2, 2) 
+ax3 = fig.add_subplot(2, 2, 3)
+plt.plot(np.random.randn(50).cumsum(), 'k--')      # 画图，跟随ax3，所以左下角的有图形
+                                                   # k--表示绘制黑色虚线图
+a = ax1.hist(np.random.randn(100), bins=20, color='k', alpha=0.3)    # 画图，hist是直方图
+ax2.scatter(np.arange(30), np.arange(30) + 3 * np.random.randn(30))  # 画图，scatter是绘制散点图
+plt.xlim([0,30])                                   # 将ax2的X轴坐标设置为[0,30]
+
+
+实用写法：
+fig, axes = plt.subplots(2, 3)      # 创建fig，创建axes数组，2*3的二维数组
+                                    # 可以使用axes[1,1]，表示第二行第二列
+
+fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)     # sharex---所有sharex使用相同的X轴刻度
+                                                             # sharey---所有sharey使用相同的Y轴刻度
+for i in range(2):
+    for j in range(2):
+        axes[i, j].hist(np.random.randn(500), bins=50, color='k', alpha=0.5)   # 为每个axe绘图
+plt.subplots_adjust(wspace=0, hspace=0)         # 将间距收缩到了0
+
+具体图与图的间距函数：
+subplots_adjust(left=None, bottom=None, right=None, top=None,
+                wspace=None, hspace=None)
+
+
+////////////// 颜色、标记、线型 //////////////
+
+颜色：
+plt.plot([1.5, 3.5, -2, 1.6], color='#CECECE')    # 颜色代码
+plt.plot([1.5, 3.5, -2, 1.6], 'r')                # 红色的简写
+
+标记：
+plt.plot([1.5, 3.5, -2, 1.6], 'o')                # 点
+
+线型：
+plt.plot([1.5, 3.5, -2, 1.6], '--')               # 虚线
+
+综合：
+plt.plot([1.5, 3.5, -2, 1.6], color='k', linestyle='dashed', marker='o')   # 黑线，虚线，圆点
+plt.plot([1.5, 3.5, -2, 1.6], 'go--')          # 绿线圆点虚线，顺序不能变
+
+其他：
+drawstyle='steps-post', label='steps-post'     # 折线变成了阶梯线
+
+
+////////////// 标题，轴刻度，轴标签 //////////////
+
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+ax.plot(np.random.randn(1000).cumsum())
+# ax.set_xticks([0, 250, 500, 750, 1000])                      # 直接设定X轴刻度
+ax.set_xticklabels(['one', 'two', 'three', 'four', 'five'],    # 设定X轴刻度名称
+                     rotation=30, fontsize='small')            # rotation是使X轴刻度名称倾斜30度
+ax.set_title('My first matplotlib plot')                       # 设定整张表格的标题
+ax.set_xlabel('Stages')                                        # 设定X轴的标题，通常在X轴正下方
+plt.show()                                      
+
+设定Y轴。。。。。。。。。。。把上面方法的x变成y就行了           
+
+
+////////////// 图例，注解，保存 //////////////
+
+图例：
+from numpy.random import randn
+
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+ax.plot(randn(1000).cumsum(), 'k', label='one')        # 设置第一条线，实线黑，叫做one
+ax.plot(randn(1000).cumsum(), 'k--', label='two')      # 设置第二条线，虚线黑，叫做two
+ax.plot(randn(1000).cumsum(), 'k.', label='three')     # 设置第三条线，点线黑，叫做three
+ax.legend(loc='best')                                  # 设置图例，位置自动，其他位置参数可以网上找
+plt.show()
+
+也可以使用plt.legend()，尽量放在plt.show()前面
+plt.legend([l1, l2], ['red', 'blue'], loc = 'best')    # 为位置11,12设置图例，名字叫'red', 'blue'
+
+
+注解：
+文字注解pyplot.text：
+text(tx,ty,fontsize=fs,verticalalignment=va,horizontalalignment=ha,...)
+tx和ty指定放置文字的位置，va和ha指定对其方式，可以是top，bottom，center或者left，right，center
+还可以使文字带有边框，边框形状还可以是箭头，并指定方向
+ax.text(x, y, 'Hello world!', family='monospace', fontsize=10)   # 指定x,y坐标添加文字注解
+
+箭头注解pyplot.annotate：
+annotate(text,xy=(tx0,ty0),xytext=(tx1,ty1),arrowprops=dict(arrowstyle="->",connectionstyle="arc3"))
+text是与箭头一起的文字，xy是箭头所在位置，终点，xytext是起点，arrowtypes指定箭头的样
+
+
+保存：
+
+plt.savefig('figpath.svg')
+plt.savefig('figpath.png', dpi=400, bbox_inches='tight')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
